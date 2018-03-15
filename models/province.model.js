@@ -34,6 +34,7 @@ ProvinceSchema.methods = {
 	 */
   toJSON() {
 		let obj = this.toObject();
+    delete obj._id;
 		delete obj.__v;
 		delete obj.createdAt;
 		return obj;
@@ -51,11 +52,9 @@ ProvinceSchema.statics = {
 	 * @param {number} limit - Limit number of Provinces to be returned.
 	 * @returns {Promise<User[]>}
 	 */
-	getProvincesList({skip = 0, limit = 50} = {}) {
+	getProvincesList() {
 		return this.find()
-			.sort({ createdAt: -1 })
-			.skip(+skip)
-			.limit(+limit)
+			.sort({ "code": 1 })
 			.exec();
 	}
 };

@@ -38,6 +38,7 @@ CitySchema.methods = {
 	 */
   toJSON() {
 		let obj = this.toObject();
+    delete obj._id;
 		delete obj.__v;
 		delete obj.createdAt;
 		return obj;
@@ -55,11 +56,9 @@ CitySchema.statics = {
 	 * @param {number} limit - Limit number of City to be returned.
 	 * @returns {Promise<User[]>}
 	 */
-	getCitiesList({skip = 0, limit = 50} = {}) {
-		return this.find()
-			.sort({ createdAt: -1 })
-			.skip(+skip)
-			.limit(+limit)
+	getCitiesList(code) {
+		return this.find({"provinceCode": code})
+			.sort({ "code": 1 })
 			.exec();
 	}
 };

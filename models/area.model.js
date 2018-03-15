@@ -42,6 +42,7 @@ AreaSchema.methods = {
 	 */
   toJSON() {
 		let obj = this.toObject();
+    delete obj._id;
 		delete obj.__v;
 		delete obj.createdAt;
 		return obj;
@@ -59,11 +60,9 @@ AreaSchema.statics = {
 	 * @param {number} limit - Limit number of areas to be returned.
 	 * @returns {Promise<User[]>}
 	 */
-	getAreasList({skip = 0, limit = 50} = {}) {
-		return this.find()
-			.sort({ createdAt: -1 })
-			.skip(+skip)
-			.limit(+limit)
+	getAreasList(code) {
+		return this.find({"cityCode": code})
+			.sort({ "code": 1 })
 			.exec();
 	}
 };

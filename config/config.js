@@ -20,9 +20,9 @@ function setConfig() {
 			.default('development'),
 		SERVER_PORT: Joi.number()
 			.default(3002),
-		MONGO_HOST: Joi.string().default('localhost'),
+		MONGO_HOST: Joi.string().default('mongodb://localhost'),
 		MONGO_PORTS: Joi.number().default(27017),
-		WEB_SERVICE_HOST: Joi.string().required(),
+		WEB_SERVICE_HOST: Joi.string(),
 		WEB_SERVICE_PORT: Joi.number().default(80),
 		ACCESS_JWT_ALGORITHM: Joi.string().default('RS256'),
 		ACCESS_JWT_ISSUER: Joi.string().allow(''),
