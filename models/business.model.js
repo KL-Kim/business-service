@@ -5,33 +5,245 @@ import httpStatus from 'http-status';
 import APIError from '../helper/api-error';
 
 const BusinessSchema = new mongoose.Schema({
-  "state": {
-    "type": String,
-    "required": true,
-    "default": "draft",
-    "enum": ['draft', 'published', 'deleted']
-  },
-  "subDepartments": [{
-    "id": {
-      "type": String
-    },
-    "name": {
-      "type": String
-    }
-  }],
   "cnName": {
-    "type": String,
-    "required": true,
+    type: String,
+    required: true,
   },
   "krName": {
-    "type": String,
-    "required": true,
+    type: String,
+    required: true,
   },
+  "state": {
+    type: String,
+    required: true,
+    default: "draft",
+    enum: ['draft', 'published', 'deleted']
+  },
+  "subDepartments": [{
+    id: {
+      type: String
+    },
+    cnName: {
+      type: String
+    },
+    krName: {
+      type: String
+    },
+  }],
   "category": {
-    "type": String,
-    "required": true,
+    id: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true,
+    },
   },
+  "tags": [{
+    id: {
+      type: String
+    },
+    name: {
+      type: String
+    },
+  }],
+  "tel": [{
+    type: String,
+    required: true,
+  }],
+  "address": {
+		province: {
+			name: {
+				type: String,
+        required: true,
+			},
+			code: {
+				type: Number,
+        required: true,
+			}
+		},
+		city: {
+			name: {
+				type: String,
+        required: true,
+			},
+			code: {
+				type: Number,
+        required: true,
+			}
+		},
+		area: {
+			name: {
+				type: String,
+        required: true,
+			},
+			code: {
+				type: Number,
+        required: true,
+			}
+		},
+		street: {
+			type: String,
+		},
+	},
+  "geo": {
+    lat: {
+      type: String,
+      required: true,
+    },
+    long: {
+      type: String,
+      required: true,
+    }
+  },
+  "rating": {
+    value: {
+      type: Number,
+      default: 0,
+    },
+    count: {
+      type: Number,
+      default: 0,
+    },
+  },
+  "description": {
+    type: String
+  },
+  "priceRange": {
+    type: String
+  },
+  "status": {
+    type: String,
+    required: true,
+    enum: ['normal', 'dissolute'],
+    default: 'normal',
+  },
+  "viewCount": {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  "favoredCount": {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  "openingHoursSpec": {
+    mon: {
+      open: {
+        type: String
+      },
+      close: {
+        type: String
+      }
+    },
+    tue: {
+      open: {
+        type: String
+      },
+      close: {
+        type: String
+      }
+    },
+    wed: {
+      open: {
+        type: String
+      },
+      close: {
+        type: String
+      }
+    },
+    thu: {
+      open: {
+        type: String
+      },
+      close: {
+        type: String
+      }
+    },
+    fri: {
+      open: {
+        type: String
+      },
+      close: {
+        type: String
+      }
+    },
+    sat: {
+      open: {
+        type: String
+      },
+      close: {
+        type: String
+      }
+    },
+    sun: {
+      open: {
+        type: String
+      },
+      close: {
+        type: String
+      }
+    }
+  },
+  "language": [{
+    type: String
+  }],
+  "rest": {
+    type: String
+  },
+  "payment": [{
+    type: String
+  }],
+  "delivery": {
+    type: String
+  },
+  "event": [{
+    type: String
+  }],
+  "menu": [{
+    name: {
+      type: String
+    },
+    price: {
+      type: Number
+    },
+    hot: {
+      type: Boolean
+    },
+    new: {
+      type: Boolean
+    }
+  }],
+  "thumbnailUri": [{
+    default: {
+      type: String
+    },
+    hd: {
+      type: String
+    },
+  }],
+  "imagesUri": [{
+    type: String
+  }],
+  "reviewsCount": {
+    type: Number,
+    default: 0
+  },
+  "reviewsList": [{
+    type: String
+  }],
+  "storiesCount": {
+    type: Number,
+    default: 0,
+  },
+  "storiesList": [{
+    type: String
+  }]
 });
+
+BusinessSchema.index({cnName: 'text', krName: 'text', description: 'text'});
 
 /**
  * Virtuals

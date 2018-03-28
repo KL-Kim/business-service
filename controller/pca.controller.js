@@ -22,7 +22,6 @@ class PcaController extends BaseController {
   }
 
   getCitiesByCode(req, res, next) {
-
     City.getCitiesList(req.params.code)
       .then((cities) => {
         if (_.isEmpty(cities)) {

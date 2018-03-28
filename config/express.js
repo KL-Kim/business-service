@@ -36,8 +36,8 @@ if (process.env.NODE_ENV === 'development') {
 // });
 
 // Security Concern
-// app.use(helmet());
-// app.use(helmet.hidePoweredBy());
+app.use(helmet());
+app.use(helmet.hidePoweredBy());
 app.use(cors);
 // app.use(csurf);
 // app.use(csp);
@@ -46,7 +46,6 @@ app.use(methodOverride());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: '20mb' }));
-
 
 // Passport Initialization
 // app.use(passport.initialize());
