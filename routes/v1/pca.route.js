@@ -6,6 +6,13 @@ import paramValidation from '../../config/param-validation';
 
 const router = Express.Router();
 const pcaController = new PcaController();
+validate.options({
+  allowUnknownBody: false,
+  allowUnknownHeaders: true,
+  allowUnknownQuery: true,
+  allowUnknownParams: true,
+  allowUnknownCookies: true
+});
 
 /** GET /api/v1/pca/provinces - Get list of business **/
 router.get('/provinces', pcaController.getProvincesList);

@@ -1,57 +1,45 @@
 import Promise from 'bluebird';
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import httpStatus from 'http-status';
-
 import APIError from '../helper/api-error';
 
-const BusinessSchema = new mongoose.Schema({
-  "cnName": {
-    type: String,
-    required: true,
-  },
-  "krName": {
-    type: String,
-    required: true,
-  },
+const BusinessSchema = new Schema({
   "state": {
     type: String,
     required: true,
     default: "draft",
     enum: ['draft', 'published', 'deleted']
   },
-  "subDepartments": [{
-    id: {
-      type: String
-    },
-    cnName: {
-      type: String
-    },
-    krName: {
-      type: String
-    },
-  }],
-  "category": {
-    id: {
-      type: String,
-      required: true
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-  },
-  "tags": [{
-    id: {
-      type: String
-    },
-    name: {
-      type: String
-    },
-  }],
-  "tel": [{
+  "cnName": {
     type: String,
     required: true,
+    unique: true
+  },
+  "krName": {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  "enName": {
+    type: String,
+  },
+  "subDepartments": [{
+    type: Schema.Types.ObjectId,
+    ref: 'Business'
   }],
+  "category": {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: 'Category',
+  },
+  "tags": [{
+    type: Schema.Types.ObjectId,
+    ref: 'Tag',
+  }],
+  "tel": {
+    type: String,
+    required: true,
+  },
   "address": {
 		province: {
 			name: {
@@ -97,16 +85,6 @@ const BusinessSchema = new mongoose.Schema({
       required: true,
     }
   },
-  "rating": {
-    value: {
-      type: Number,
-      default: 0,
-    },
-    count: {
-      type: Number,
-      default: 0,
-    },
-  },
   "description": {
     type: String
   },
@@ -119,7 +97,7 @@ const BusinessSchema = new mongoose.Schema({
     enum: ['normal', 'dissolute'],
     default: 'normal',
   },
-  "viewCount": {
+  "viewsCount": {
     type: Number,
     required: true,
     default: 0,
@@ -129,65 +107,30 @@ const BusinessSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
-  "openingHoursSpec": {
+  "openningHoursSpec": {
     mon: {
-      open: {
-        type: String
-      },
-      close: {
-        type: String
-      }
+      type: String
     },
     tue: {
-      open: {
-        type: String
-      },
-      close: {
-        type: String
-      }
+      type: String
     },
     wed: {
-      open: {
-        type: String
-      },
-      close: {
-        type: String
-      }
+      type: String
     },
     thu: {
-      open: {
-        type: String
-      },
-      close: {
-        type: String
-      }
+      type: String
     },
     fri: {
-      open: {
-        type: String
-      },
-      close: {
-        type: String
-      }
+      type: String
     },
     sat: {
-      open: {
-        type: String
-      },
-      close: {
-        type: String
-      }
+      type: String
     },
     sun: {
-      open: {
-        type: String
-      },
-      close: {
-        type: String
-      }
+      type: String
     }
   },
-  "language": [{
+  "supportedLanguage": [{
     type: String
   }],
   "rest": {
@@ -216,14 +159,14 @@ const BusinessSchema = new mongoose.Schema({
       type: Boolean
     }
   }],
-  "thumbnailUri": [{
+  "thumbnailUri": {
     default: {
       type: String
     },
     hd: {
       type: String
     },
-  }],
+  },
   "imagesUri": [{
     type: String
   }],
@@ -231,9 +174,13 @@ const BusinessSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  "reviewsList": [{
+  "reviewsList": {
     type: String
-  }],
+  },
+  "ratingAverage": {
+    type: Number,
+    default: 0,
+  },
   "storiesCount": {
     type: Number,
     default: 0,
@@ -243,7 +190,15 @@ const BusinessSchema = new mongoose.Schema({
   }]
 });
 
-BusinessSchema.index({cnName: 'text', krName: 'text', description: 'text'});
+/**
+ * Index
+ */
+BusinessSchema.index({
+  cnName: 'text',
+  krName: 'text',
+  enName: 'text',
+  description: 'text'
+});
 
 /**
  * Virtuals
@@ -270,20 +225,34 @@ BusinessSchema.methods = {
  * Statics
  */
 BusinessSchema.statics = {
-
   /**
 	 * List business in descending order of 'createdAt' timestamp.
 	 * @param {number} skip - Number of business to be skipped.
 	 * @param {number} limit - Limit number of business to be returned.
-	 * @returns {Promise<User[]>}
+	 * @returns {Promise<Business[]>}
 	 */
 	getBusinessList({skip = 0, limit = 50} = {}) {
 		return this.find()
 			.sort({ createdAt: -1 })
 			.skip(+skip)
 			.limit(+limit)
+      .populate({
+        path: 'category',
+        select: ['code', 'krName', 'cnName', 'enName', 'parent']
+      })
+      .populate({
+        path: 'tags',
+        select: ['code', 'krName', 'cnName', 'enName']
+      })
 			.exec();
-	}
+	},
+
+  /**
+   * Filtered business list count
+   */
+  getTotalCount() {
+    return this.count().exec();
+  },
 };
 
 export default mongoose.model('Business', BusinessSchema);
