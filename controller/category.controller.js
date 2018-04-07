@@ -44,37 +44,15 @@ class CategoryController extends BaseController {
 
         const data = req.body;
 
-        return Category.findOne({$or: [
-          {
-            "code": data.code,
-          },
-          {
-            "cnName": data.cnname,
-          },
-          {
-            "krName": data.krName,
-          },
-          {
-            "enName": data.enName,
-          }
-        ]});
-      })
-      .then(category => {
-        const data = req.body;
+        const category = new Category({
+          code: data.code,
+          enName: data.enName,
+          cnName: data.cnName,
+          krName: data.krName,
+          parent: data.parent,
+        });
 
-        if (_.isEmpty(category)) {
-          category = new Category({
-            code: data.code,
-            enName: data.enName,
-            cnName: data.cnName,
-            krName: data.krName,
-            parent: data.parent,
-          });
-
-          return category.save();
-        } else {
-          throw new APIError("The category already exists", httpStatus.CONFLICT);
-        }
+        return category.save();
       })
       .then(category => {
         return Category.getCategoriesList();
@@ -124,10 +102,6 @@ class CategoryController extends BaseController {
         return res.json(list);
       })
       .catch(err => {
-        if (err.name === 'MongoError' && err.code === 11000) {
-          return next(new APIError('The category already exists', httpStatus.CONFLICT));
-        }
-
         return next(err);
       });
   }
@@ -142,17 +116,14 @@ class CategoryController extends BaseController {
       .then(role => {
         if (_.isEmpty(role)) throw new APIError("Permission denied", httpStatus.UNAUTHORIZED);
 
-        return Category.getById(req.body._id);
+        return Category.findByIdAndRemove(req.body._id);
       })
       .then(category => {
         if (category) {
-          return Category.findByIdAndRemove(req.body._id);
+          return Category.getCategoriesList();
         } else {
           throw new APIError("Not found", httpStatus.NOT_FOUND);
         }
-      })
-      .then(category => {
-        return Category.getCategoriesList();
       })
       .then(list => {
         return res.json(list);

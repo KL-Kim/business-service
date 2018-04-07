@@ -21,8 +21,17 @@ validate.options({
 /** GET /api/v1/business - Get list of business **/
 router.get('/', validate(paramValidation.getBusinessList), businessController.getBusinessList);
 
+/** GET /api/v1/business/:id - Get single business **/
+router.get('/single/:id', validate(paramValidation.getSingleBusiness), businessController.getSingleBusiness);
+
 /** POST /api/v1/business - Add business **/
 router.post('/', validate(paramValidation.addBusiness), businessController.addBusiness);
+
+/** PUT /api/v1/business - Update business **/
+router.put('/', validate(paramValidation.updateBusiness), businessController.updateBusiness);
+
+/** DELETE /api/v1/business - Delete business **/
+router.delete('/', validate(paramValidation.deleteBusiness), businessController.deleteBusiness);
 
 /** GET /api/v1/business/category - Get business category list **/
 router.get('/category', validate(paramValidation.getBusinessCategory), categoryController.getCategoriesList);
@@ -36,7 +45,7 @@ router.put('/category', validate(paramValidation.updateBusinessCategory), catego
 /** DELETE /api/v1/business/category - Delete business category **/
 router.delete('/category', validate(paramValidation.deleteBusinessCategory), categoryController.deleteBusinessCategory);
 
-/** GET /api/v1/business/tag - Add business tag **/
+/** GET /api/v1/business/tag - Get business tag list **/
 router.get('/tag', validate(paramValidation.getBusinessTags), tagController.getTagsList);
 
 /** POST /api/v1/business/tag - Add business tag **/
@@ -45,7 +54,7 @@ router.post('/tag', validate(paramValidation.addBusinessTag), tagController.addB
 /** PUT /api/v1/business/tag - Update business tag **/
 router.put('/tag', validate(paramValidation.updateBusinessTag), tagController.updateBusinessTag);
 
-/** DELETE /api/v1/business/tag - Update business tag **/
+/** DELETE /api/v1/business/tag - Delete business tag **/
 router.delete('/tag', validate(paramValidation.deleteBusinessTag), tagController.deleteBusinessTag);
 
 export default router;

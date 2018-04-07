@@ -57,6 +57,6 @@ const db = require('./db.config');
 app.use('/api', routes);
 
 // Error Handler
-// app.use(errorHandler);
+app.use(errorHandler);
 
 export default app;

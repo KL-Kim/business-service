@@ -22,6 +22,7 @@ const BusinessSchema = new Schema({
   },
   "enName": {
     type: String,
+    required: true,
   },
   "subDepartments": [{
     type: Schema.Types.ObjectId,
@@ -44,31 +45,25 @@ const BusinessSchema = new Schema({
 		province: {
 			name: {
 				type: String,
-        required: true,
 			},
 			code: {
 				type: Number,
-        required: true,
 			}
 		},
 		city: {
 			name: {
 				type: String,
-        required: true,
 			},
 			code: {
 				type: Number,
-        required: true,
 			}
 		},
 		area: {
 			name: {
 				type: String,
-        required: true,
 			},
 			code: {
 				type: Number,
-        required: true,
 			}
 		},
 		street: {
@@ -78,11 +73,9 @@ const BusinessSchema = new Schema({
   "geo": {
     lat: {
       type: String,
-      required: true,
     },
     long: {
       type: String,
-      required: true,
     }
   },
   "description": {
@@ -142,9 +135,9 @@ const BusinessSchema = new Schema({
   "delivery": {
     type: String
   },
-  "event": [{
+  "event": {
     type: String
-  }],
+  },
   "menu": [{
     name: {
       type: String
@@ -232,7 +225,7 @@ BusinessSchema.statics = {
 	 * @returns {Promise<Business[]>}
 	 */
 	getBusinessList({skip = 0, limit = 50} = {}) {
-		return this.find()
+		return this.find({}, 'krName cnName enName state status viewsCount thumbnailUri event')
 			.sort({ createdAt: -1 })
 			.skip(+skip)
 			.limit(+limit)
@@ -246,6 +239,27 @@ BusinessSchema.statics = {
       })
 			.exec();
 	},
+
+  /**
+   * Get business by id
+   * @param {ObjectId} id - Business id
+   */
+  getById(id) {
+    return this.findById(id)
+      .populate({
+        path: 'category',
+        select: ['code', 'krName', 'cnName', 'enName', 'parent'],
+      })
+      .populate({
+        path: 'tags',
+        select: ['code', 'krName', 'cnName', 'enName'],
+      })
+      .populate({
+        path: 'subDepartments',
+        select: ['krName', 'cnName', 'enName'],
+      })
+      .exec();
+  },
 
   /**
    * Filtered business list count

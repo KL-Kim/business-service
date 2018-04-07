@@ -42,36 +42,14 @@ class TagController extends BaseController {
 
         const data = req.body;
 
-        return Tag.findOne({$or: [
-          {
-            "code": data.code,
-          },
-          {
-            "cnName": data.cnname,
-          },
-          {
-            "krName": data.krName,
-          },
-          {
-            "enName": data.enName,
-          }
-        ]});
-      })
-      .then(tag => {
-        if(_.isEmpty(tag)) {
-          const data = req.body;
+        const tag = new Tag({
+          code: data.code,
+          enName: data.enName,
+          cnName: data.cnName,
+          krName: data.krName,
+        });
 
-          tag = new Tag({
-            code: data.code,
-            enName: data.enName,
-            cnName: data.cnName,
-            krName: data.krName,
-          });
-
-          return tag.save();
-        } else {
-          throw new APIError("The tag already exists", httpStatus.CONFLICT);
-        }
+        return tag.save();
       })
       .then(tag => {
         return Tag.getTagsList();
@@ -119,10 +97,6 @@ class TagController extends BaseController {
         return res.json(list);
       })
       .catch(err => {
-        if (err.name === 'MongoError' && err.code === 11000) {
-          return next(new APIError('The tag already exists', httpStatus.CONFLICT));
-        }
-
         return next(err);
       });
   }
@@ -137,17 +111,14 @@ class TagController extends BaseController {
       .then(role => {
         if (_.isEmpty(role)) throw new APIError("Permission denied", httpStatus.UNAUTHORIZED);
 
-        return Tag.getById(req.body._id);
+        return Tag.findByIdAndRemove(req.body._id);
       })
       .then(tag => {
         if (tag) {
-          return Tag.findByIdAndRemove(req.body._id);
+          return Tag.getTagsList();
         } else {
           throw new APIError("Not found", httpStatus.NOT_FOUND);
         }
-      })
-      .then(tag => {
-        return Tag.getTagsList();
       })
       .then(list => {
         return res.json(list);
