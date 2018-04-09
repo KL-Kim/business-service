@@ -18,11 +18,15 @@ class BusinessController extends BaseController {
    * Get business list
    */
   getBusinessList(req, res, next) {
-    const { skip, limit } = req.query;
+    const { skip, limit, search, state, event } = req.query;
+    const filter = {
+      state: state,
+      event: event
+    };
 
-    Business.getTotalCount().then(count => {
+    Business.getTotalCount({skip, limit, filter, search}).then(count => {
       req.count = count;
-      return Business.getBusinessList({skip, limit})
+      return Business.getBusinessList({skip, limit, filter, search})
     })
     .then(list => {
       return res.json({
@@ -78,7 +82,13 @@ class BusinessController extends BaseController {
         return business.save();
       })
       .then(business => {
-        return res.json(business);
+        if (!_.isEmpty(business.chains)) {
+          business.chains.map(chain => {
+            console.log(chain);
+          });
+        }
+
+        return res.status(204).json();
       })
       .catch(err => {
         return next(err);
@@ -104,23 +114,17 @@ class BusinessController extends BaseController {
       .then(role => {
         if (_.isEmpty(role)) throw new APIError("Permission denied", httpStatus.UNAUTHORIZED);
 
-        return Business.getById(req.body._id);
+        const id = req.body._id
+        const data = req.body;
+        delete data._id;
+
+        return Business.findByIdAndUpdate(id, {...data}).exec();
       })
       .then(business => {
         if (business) {
-          const data = req.body;
-          delete data._id;
-
-          return business.update({...data});
-        } else {
-          throw new APIError("Not found", httpStatus.NOT_FOUND);
-        }
-      })
-      .then(result => {
-        if (result.ok) {
           return res.status(204).json();
         } else {
-          throw new APIError("Update business failed", httpStatus.INTERNAL_SERVER_ERROR);
+          throw new APIError("Not found", httpStatus.NOT_FOUND);
         }
       })
       .catch(err => {

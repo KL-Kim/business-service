@@ -1,6 +1,8 @@
 import Promise from 'bluebird';
 import mongoose, { Schema } from 'mongoose';
 import httpStatus from 'http-status';
+import _ from 'lodash';
+
 import APIError from '../helper/api-error';
 
 const BusinessSchema = new Schema({
@@ -8,7 +10,7 @@ const BusinessSchema = new Schema({
     type: String,
     required: true,
     default: "draft",
-    enum: ['draft', 'published', 'deleted']
+    enum: ['draft', 'published', 'trash']
   },
   "cnName": {
     type: String,
@@ -24,7 +26,7 @@ const BusinessSchema = new Schema({
     type: String,
     required: true,
   },
-  "subDepartments": [{
+  "chains": [{
     type: Schema.Types.ObjectId,
     ref: 'Business'
   }],
@@ -224,11 +226,72 @@ BusinessSchema.statics = {
 	 * @param {number} limit - Limit number of business to be returned.
 	 * @returns {Promise<Business[]>}
 	 */
-	getBusinessList({skip = 0, limit = 50} = {}) {
-		return this.find({}, 'krName cnName enName state status viewsCount thumbnailUri event')
+	getBusinessList({skip = 0, limit = 20, filter = {}, search} = {}) {
+
+    let conditions,
+        searchCondition,
+        eventCondition,
+        stateCondition;
+
+    if (filter.state) {
+      stateCondition = {
+        "state": {
+					"$in": filter.state
+				}
+      }
+    }
+
+    if (filter.event) {
+      eventCondition = {
+        "event" : {
+          "$ne": null || ''
+        }
+      }
+    }
+
+    if (search) {
+			const escapedString =  _.escapeRegExp(search)
+			searchCondition = {
+				$or: [
+					{
+						"krName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					},
+					{
+						"cnName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					},
+          {
+						"enName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					}
+				]
+			}
+		}
+
+    if (stateCondition || searchCondition || eventCondition) {
+      conditions = {
+				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
+					_.isEmpty(stateCondition) ? {} : stateCondition,
+          _.isEmpty(eventCondition) ? {} : eventCondition,
+        ]
+			};
+    }
+
+		return this.find(_.isEmpty(conditions) ? {} : conditions, 'krName cnName enName state status viewsCount thumbnailUri event chains')
 			.sort({ createdAt: -1 })
 			.skip(+skip)
 			.limit(+limit)
+      .populate({
+        path: 'chains',
+        select: ['krName', 'cnName', 'enName', 'state'],
+      })
       .populate({
         path: 'category',
         select: ['code', 'krName', 'cnName', 'enName', 'parent']
@@ -255,7 +318,7 @@ BusinessSchema.statics = {
         select: ['code', 'krName', 'cnName', 'enName'],
       })
       .populate({
-        path: 'subDepartments',
+        path: 'chains',
         select: ['krName', 'cnName', 'enName'],
       })
       .exec();
@@ -264,8 +327,64 @@ BusinessSchema.statics = {
   /**
    * Filtered business list count
    */
-  getTotalCount() {
-    return this.count().exec();
+  getTotalCount({skip = 0, limit = 20, filter = {}, search} = {}) {
+    let conditions,
+        searchCondition,
+        eventCondition,
+        stateCondition;
+
+    if (filter.state) {
+      stateCondition = {
+        "state": {
+					"$in": filter.state
+				}
+      }
+    }
+
+    if (filter.event) {
+      eventCondition = {
+        "event" : {
+          "$ne": null || ''
+        }
+      }
+    }
+
+    if (search) {
+			const escapedString =  _.escapeRegExp(search)
+			searchCondition = {
+				$or: [
+					{
+						"krName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					},
+					{
+						"cnName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					},
+          {
+						"enName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					}
+				]
+			}
+		}
+
+    if (stateCondition || searchCondition || eventCondition) {
+      conditions = {
+				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
+					_.isEmpty(stateCondition) ? {} : stateCondition,
+          _.isEmpty(eventCondition) ? {} : eventCondition,
+        ]
+			};
+    }
+
+    return this.count(_.isEmpty(conditions) ? {} : conditions).exec();
   },
 };
 

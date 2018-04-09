@@ -10,6 +10,10 @@ export default {
 	/** GET /api/v1/business - Get list of business **/
 	"getBusinessList": {
 		query: {
+			limit: Joi.number(),
+			skip: Joi.number(),
+			event: Joi.number(),
+			state: Joi.string().valid(['draft', 'published', 'trash']),
 			search: Joi.string().trim().strip().allow(''),
 		}
 	},
@@ -24,11 +28,11 @@ export default {
 	/** POST /api/v1/business - Add business **/
 	"addBusiness": {
 		"body":{
-			"state": Joi.string().valid(['draft', 'published', 'deleted']),
+			"state": Joi.string().valid(['draft', 'published', 'trash']),
 			"enName": Joi.string().trim().required(),
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
-			"subDepartments": Joi.array().items(Joi.string().hex()).allow(''),
+			"chains": Joi.array().items(Joi.string().hex()).allow(''),
 			"category": Joi.string().hex().required(),
 			"tags": Joi.array().items(Joi.string().hex()).allow(''),
 			"tel": Joi.string().trim().required(),
@@ -86,32 +90,32 @@ export default {
 	"updateBusiness": {
 		"body":{
 			"_id": Joi.string().hex().required(),
-			"state": Joi.string().valid(['draft', 'published', 'deleted']),
+			"state": Joi.string().valid(['draft', 'published', 'trash']),
 			"enName": Joi.string().trim().required(),
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
-			"subDepartments": Joi.array().items(Joi.string().hex()).allow(''),
+			"chains": Joi.array().items(Joi.string().hex()).allow(''),
 			"category": Joi.string().hex().required(),
 			"tags": Joi.array().items(Joi.string().hex()).allow(''),
 			"tel": Joi.string().trim().required(),
 			"address": {
 				province: {
-					name: Joi.string().trim().required(),
-					code: Joi.number().required(),
+					name: Joi.string().trim().allow(''),
+					code: Joi.number().allow(''),
 				},
 				city:{
-					name: Joi.string().trim().required(),
-					code: Joi.number().required(),
+					name: Joi.string().trim().allow(''),
+					code: Joi.number().allow(''),
 				},
 				area: {
-					name: Joi.string().trim().required(),
-					code: Joi.number().required(),
+					name: Joi.string().trim().allow(''),
+					code: Joi.number().allow(''),
 				},
-				street: Joi.string().trim().required(),
+				street: Joi.string().trim().allow(''),
 			},
 			"geo": {
-				lat: Joi.number().required(),
-				long: Joi.number().required(),
+				lat: Joi.number().allow(''),
+				long: Joi.number().allow(''),
 			},
 			"description": Joi.string().trim().allow(''),
 			"priceRange": Joi.string().trim().allow(''),
@@ -159,7 +163,7 @@ export default {
 		}
 	},
 
-	/** POST /api/v1/business/cateogory - Add business cateogory**/
+	/** POST /api/v1/business/category - Add business category**/
 	"addBusinessCategory": {
 		"body": {
 			"code": Joi.number().required(),

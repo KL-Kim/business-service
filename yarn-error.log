@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/bin/node /Users/k/.yarn/bin/yarn.js debug
+  /usr/local/bin/node /Users/k/.yarn/bin/yarn.js start
 
 PATH: 
   /Users/k/.yarn/bin:/Users/k/.config/yarn/global/node_modules/.bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/usr/local/go/bin
@@ -2590,7 +2590,7 @@ Trace:
   Error: Command failed.
   Exit code: 1
   Command: sh
-  Arguments: -c clear && babel-node --inspect=0.0.0.0:9229 server.js 
+  Arguments: -c clear && babel-node server.js
   Directory: /Users/k/Desktop/ikoreatown-microservices/business-service
   Output:
   

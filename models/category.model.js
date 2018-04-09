@@ -30,8 +30,8 @@ const CategorySchema = new Schema({
     "type": Number,
   },
   business: [{
-    "type": Schema.Types.ObjectId,
-    "ref": 'Business'
+    type: Schema.Types.ObjectId,
+    ref: 'Business'
   }],
 });
 

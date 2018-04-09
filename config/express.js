@@ -56,6 +56,9 @@ const db = require('./db.config');
 // App routes
 app.use('/api', routes);
 
+// Static files
+app.use('/public/images', Express.static('img'));
+
 // Error Handler
 app.use(errorHandler);
 
