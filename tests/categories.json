@@ -1,0 +1,155 @@
+[
+  {
+    "code": "11",
+    "krName": "맛집",
+    "cnName": "美食",
+    "enName": "Restaurant"
+  },
+  {
+    "code": "1101",
+    "krName": "한식",
+    "cnName": "韩国料理",
+    "enName": "Korean",
+    "parent": "11"
+  },
+  {
+    "code": "1102",
+    "krName": "일식",
+    "cnName": "日本料理",
+    "enName": "Japanese",
+    "parent": "11"
+  },
+  {
+    "code": "1103",
+    "krName": "양식",
+    "cnName": "西餐",
+    "enName": "Western",
+    "parent": "11"
+  },
+  {
+    "code": "1104",
+    "krName": "중식",
+    "cnName": "中华料理",
+    "enName": "Chinese",
+    "parent": "11"
+  },
+  {
+    "code": "1105",
+    "krName": "동남아",
+    "cnName": "东南亚料理",
+    "enName": "SouthEash",
+    "parent": "11"
+  },
+  {
+    "code": "12",
+    "krName": "호프",
+    "cnName": "酒吧",
+    "enName": "NightBar"
+  },
+  {
+    "code": "13",
+    "krName": "푸드",
+    "cnName": "食品类",
+    "enName": "Food"
+  },
+  {
+    "code": "14",
+    "krName": "노래방",
+    "cnName": "KTV",
+    "enName": "KTV"
+  },
+  {
+    "code": "21",
+    "krName": "병원",
+    "cnName": "医院",
+    "enName": "Hospital"
+  },
+  {
+    "code": "22",
+    "krName": "헤어",
+    "cnName": "美发",
+    "enName": "Haircut"
+  },
+  {
+    "code": "23",
+    "krName": "학원",
+    "cnName": "学院",
+    "enName": "School"
+  },
+  {
+    "code": "24",
+    "krName": "마사지",
+    "cnName": "推拿",
+    "enName": "Massage"
+  },
+  {
+    "code": "25",
+    "krName": "쇼핑몰",
+    "cnName": "购物广场",
+    "enName": "ShoppingMall"
+  },
+  {
+    "code": "26",
+    "krName": "부동산",
+    "cnName": "房产中介",
+    "enName": "Property Agencies"
+  },
+  {
+    "code": "27",
+    "krName": "여행사",
+    "cnName": "旅行社",
+    "enName": "Travel Agencies"
+  },
+  {
+    "code": "31",
+    "krName": "스포츠",
+    "cnName": "体育",
+    "enName": "Sports"
+  },
+  {
+    "code": "3101",
+    "krName": "골프",
+    "cnName": "高尔夫",
+    "enName": "Golf",
+    "parent": "31"
+  },
+  {
+    "code": "3102",
+    "krName": "헬스클럽",
+    "cnName": "健身馆",
+    "enName": "Gym",
+    "parent": "31"
+  },
+  {
+    "code": "3103",
+    "krName": "당구",
+    "cnName": "台球",
+    "enName": "Cue sports",
+    "parent": "31"
+  },
+  {
+    "code": "3104",
+    "krName": "스케이팅",
+    "cnName": "滑冰场",
+    "enName": "Skating",
+    "parent": "31"
+  },
+  {
+    "code": "41",
+    "krName": "관광명소",
+    "cnName": "风景区",
+    "enName": "Scenic Area"
+  },
+  {
+    "code": "42",
+    "krName": "공원",
+    "cnName": "公园",
+    "enName": "Park"
+  },
+  {
+    "code": "43",
+    "krName": "놀이동산",
+    "cnName": "游乐园",
+    "enName": "Theme Park"
+  }
+]

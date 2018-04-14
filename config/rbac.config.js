@@ -8,80 +8,100 @@ import { AccessControl } from 'accesscontrol';
 
 const grants = {
 	guest: {
-		user: {
-			"create:own": ["email", "password"],
+		business: {
+			"read:any": ["*", "!state", "!reports"],
 		},
+		category: {
+			"read:any": ["*"],
+		},
+		tag: {
+			"read:any": ["*"],
+		},
+		pca: {
+			"read:any": ["*"],
+		}
 	},
 	regular: {
-		profile: {
-			"read:own": ["*", "!password", "!lastLoginAt"],
-			//"update:own": ["*", "!role", "!point", "!userStatus", "!isVerified", "!createdAt", "!lastLogin"],
-			"update:own": ["firstName", "lastName", "gender", "birthday", "address", "interestedIn"],
+		business: {
+			"read:any": ["*", "!state", "!reports"],
 		},
-		reviews: {
+		category: {
 			"read:any": ["*"],
-			"create:own": ["*"],
-			"update:own": ["*"],
-			"delete:own": ["*"]
+		},
+		tag: {
+			"read:any": ["*"],
+		},
+		pca: {
+			"read:any": ["*"],
 		}
 	},
 	manager: {
-		profile: {
-			"read:own": ["*", "!password", "!lastLoginAt"],
-			//"update:own": ["*", "!role", "!point", "!userStatus", "!isVerified", "!createdAt", "!lastLogin"],
-			"update:own": ["firstName", "lastName", "gender", "birthday", "address", "interestedIn"],
-		},
 		business: {
 			"read:any": ["*"],
 			"create:any": ["*"],
 			"update:any": ["*"],
-			"delete:any": ["*"]
 		},
+		category: {
+			"read:any": ["*"],
+			"create:any": ["*"],
+			"update:any": ["*"],
+			"delete:any": ["*"],
+		},
+		tag: {
+			"read:any": ["*"],
+			"create:any": ["*"],
+			"update:any": ["*"],
+			"delete:any": ["*"],
+		},
+		pca: {
+			"read:any": ["*"],
+		}
 	},
 	admin: {
-		profile: {
-			"read:any": ["*", "!password"],
-			"create:any": ["firstName", "lastName", "gender", "birthday", "address", "interestedIn", "userStatus", "role"],
-			// "update:any": ["*",  "!point", "!createdAt", "!lastLogin"],
-			"update:own": ["firstName", "lastName", "gender", "birthday", "address", "interestedIn", "userStatus", "role"],
-		},
 		business: {
 			"read:any": ["*"],
 			"create:any": ["*"],
 			"update:any": ["*"],
-			"delete:any": ["*"]
 		},
-		reviews: {
+		category: {
 			"read:any": ["*"],
 			"create:any": ["*"],
 			"update:any": ["*"],
-			"delete:any": ["*"]
+			"delete:any": ["*"],
+		},
+		tag: {
+			"read:any": ["*"],
+			"create:any": ["*"],
+			"update:any": ["*"],
+			"delete:any": ["*"],
+		},
+		pca: {
+			"read:any": ["*"],
+			"update:any": ["*"],
 		}
 	},
 	god: {
-		profile: {
-			"read:any": ["*", "!password"],
-			"create:any": ["*", "!point", "!lastLoginAt", "!createdAt", "!lastLogin"],
-			"update:any": ["*", "!point", "!lastLoginAt", "!createdAt", "!lastLogin"],
-			"delete:any": ["*"]
-		},
 		business: {
 			"read:any": ["*"],
 			"create:any": ["*"],
 			"update:any": ["*"],
 			"delete:any": ["*"]
 		},
-		reviews: {
+		category: {
 			"read:any": ["*"],
 			"create:any": ["*"],
 			"update:any": ["*"],
-			"delete:any": ["*"]
+			"delete:any": ["*"],
 		},
-		admin: {
-			"read:any": ["*", "!password"],
+		tag: {
+			"read:any": ["*"],
 			"create:any": ["*"],
 			"update:any": ["*"],
-			"delete:any": ["*"]
+			"delete:any": ["*"],
+		},
+		pca: {
+			"read:any": ["*"],
+			"update:any": ["*"],
 		}
 	}
 };

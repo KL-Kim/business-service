@@ -20,8 +20,9 @@ export default {
 
 	/** GET /api/v1/business/:id - Get single business **/
 	"getSingleBusiness": {
-		"params": {
-			id: Joi.string().hex().required()
+		"query": {
+			id: Joi.string().hex().allow('', null),
+			enName: Joi.string().trim().allow('', null),
 		}
 	},
 
@@ -71,13 +72,17 @@ export default {
 			"rest": Joi.string().trim().allow(''),
 			"payment": Joi.array().items(Joi.string().trim()).allow([]),
 			"delivery": Joi.string().trim().allow(''),
-			"event": Joi.string().trim().allow(''),
+			"event": Joi.string().trim().allow('', null),
 			"menu": Joi.array().items(Joi.object().keys({
 				name: Joi.string().trim(),
 				price: Joi.number(),
 				hot: Joi.boolean(),
 				new: Joi.boolean(),
 			})).allow([]),
+			"reports": Joi.array().items(Joi.object().keys({
+				checked: Joi.boolean(),
+				content: Joi.string().trim(),
+			})),
 			"thumbnailUri": {
 				default: Joi.string().uri().allow(''),
 				hd: Joi.string().uri().allow(''),
@@ -133,13 +138,22 @@ export default {
 			"rest": Joi.string().trim().allow(''),
 			"payment": Joi.array().items(Joi.string().trim()).allow(''),
 			"delivery": Joi.string().trim().allow(''),
-			"event": Joi.string().trim().allow(''),
+			"event": Joi.string().trim().allow('', null),
 			"menu": Joi.array().items(Joi.object().keys({
 				_id: Joi.string().hex(),
 				name: Joi.string().trim(),
 				price: Joi.number(),
 				hot: Joi.boolean(),
 				new: Joi.boolean(),
+			})),
+			"reports": Joi.array().items(Joi.object().keys({
+				_id: Joi.string().hex(),
+				"checked": Joi.boolean(),
+				"content": Joi.string().trim(),
+			})),
+			"reports": Joi.array().items(Joi.object().keys({
+				checked: Joi.boolean(),
+				content: Joi.string().trim(),
 			})),
 			"thumbnailUri": {
 				default: Joi.string().uri().allow(''),
@@ -154,6 +168,16 @@ export default {
 		"body": {
 			"_id": Joi.string().hex().required(),
 		}
+	},
+
+	/** DELETE /api/v1/business/images/:id - Delete business images **/
+	"deleteBusinessImage": {
+		"params": {
+			id: Joi.string().hex().required(),
+		},
+		"body": {
+			image: Joi.string().trim().required(),
+		},
 	},
 
 	/** GET /api/v1/business/category - Get business category list **/

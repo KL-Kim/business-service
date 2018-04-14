@@ -11,7 +11,6 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 
 import config from './config';
 import APIError from '../helper/api-error';
-import Business from '../models/business.model';
 
 // Passport-jwt access token strategy options
 const accessTokenOptions = {

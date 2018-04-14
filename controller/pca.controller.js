@@ -15,6 +15,7 @@ class PcaController extends BaseController {
 
   /**
    * Get provinces list
+   * @role - *
    */
   getProvincesList(req, res, next) {
     Province.getProvincesList().then(list => {
@@ -26,6 +27,7 @@ class PcaController extends BaseController {
 
   /**
    * Get cities list
+   * @role - *
    * @property {Number} code - Province code
    */
   getCitiesByCode(req, res, next) {
@@ -43,6 +45,7 @@ class PcaController extends BaseController {
 
   /**
    * Get areas list
+   * @role - *
    * @property {Number} code - City code
    */
   getAreasByCode(req, res, next) {

@@ -15,6 +15,7 @@ const TagSchema = new Schema({
     "type": String,
     "required": true,
     "unique": true,
+    "lowercase": true,
   },
   "cnName": {
     "type": String,
@@ -65,7 +66,7 @@ TagSchema.methods = {
 TagSchema.statics = {
 
   /**
-	 * List Provinces in descending order of 'createdAt' timestamp.
+	 *  List tags in descending order of 'code'.
 	 * @returns {Promise<Tag[]>}
 	 */
 	getTagsList(search) {
@@ -76,15 +77,8 @@ TagSchema.statics = {
 
     if (num) {
       searchCondition = {
-        $or: [
-          {
-            "code": num
-          },
-          {
-            "parent": num
-          },
-        ]
-      }
+        "code": num
+      };
     } else {
       searchCondition = {
         $or: [

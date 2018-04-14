@@ -14,6 +14,7 @@ class TagController extends BaseController {
 
   /**
    * Get Business Tags list
+   * @role - *
    * @property {String} search - Search term
    */
   getTagsList(req, res, next) {
@@ -30,6 +31,7 @@ class TagController extends BaseController {
 
   /**
    * Add Tags tag
+   * @role - manager, admin, god
    * @property {number} req.body.code - Tag code
    * @property {string} req.body.cnName - Tag chinese name
    * @property {string} req.body.krName - Tag korean name
@@ -64,7 +66,7 @@ class TagController extends BaseController {
 
   /**
    * Update business tag
-   * @role manager, admin
+   * @role - manager, admin, god
    * @property {ObjectId} req.body._id - Tag id
    * @property {number} req.body.code - Tag code
    * @property {string} req.body.cnName - Tag chinese name
@@ -103,7 +105,7 @@ class TagController extends BaseController {
 
   /**
    * Delete business tag
-   * @role manager, admin
+   * @role - manager, admin, god
    * @property {ObjectId} req.body._id - Tag id
    */
   deleteBusinessTag(req, res, next) {

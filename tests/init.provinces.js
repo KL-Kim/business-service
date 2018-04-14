@@ -4,6 +4,8 @@ const db = require('../config/db.config');
 import Province from '../models/province.model';
 
 fs.readFile('./provinces.json', { 'encoding': 'utf8' }, (err, data) => {
+  if (err) throw err;
+  
   let provinces = JSON.parse(data);
 
   provinces.map(p => {

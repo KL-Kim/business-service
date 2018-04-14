@@ -14,6 +14,7 @@ class CategoryController extends BaseController {
 
   /**
    * Get business categories list
+   * @role - *
    * @property {String} search - Search term
    */
   getCategoriesList(req, res, next) {
@@ -30,7 +31,7 @@ class CategoryController extends BaseController {
 
   /**
    * Add business category
-   * @role manager, admin
+   * @role - manager, admin, god
    * @property {Number} req.body.code - Cateogory code
    * @property {String} req.body.cnName - Category chinese name
    * @property {String} req.body.krName - Category korean name
@@ -67,7 +68,7 @@ class CategoryController extends BaseController {
 
   /**
    * Update business category
-   * @role manager, admin
+   * @role - manager, admin, god
    * @property {ObjectId} req.body._id - Cateogory id
    * @property {Number} req.body.code - Cateogory code
    * @property {String} req.body.cnName - Category chinese name
@@ -108,7 +109,7 @@ class CategoryController extends BaseController {
 
   /**
    * Delete business category
-   * @role manager, admin
+   * @role - manager, admin, god
    * @property {ObjectId} req.body._id - Cateogory id
    */
   deleteBusinessCategory(req, res, next) {

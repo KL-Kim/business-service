@@ -25,6 +25,8 @@ const BusinessSchema = new Schema({
   "enName": {
     type: String,
     required: true,
+    unique: true,
+    lowercase: true,
   },
   "chains": [{
     type: Schema.Types.ObjectId,
@@ -182,7 +184,15 @@ const BusinessSchema = new Schema({
   },
   "storiesList": [{
     type: String
-  }]
+  }],
+  "reports": [{
+    "checked": {
+      type: Boolean
+    },
+    content: {
+      type: String
+    }
+  }],
 });
 
 /**
@@ -221,89 +231,6 @@ BusinessSchema.methods = {
  */
 BusinessSchema.statics = {
   /**
-	 * List business in descending order of 'createdAt' timestamp.
-	 * @param {number} skip - Number of business to be skipped.
-	 * @param {number} limit - Limit number of business to be returned.
-	 * @returns {Promise<Business[]>}
-	 */
-	getBusinessList({skip = 0, limit = 20, filter = {}, search} = {}) {
-
-    let conditions,
-        searchCondition,
-        eventCondition,
-        stateCondition;
-
-    if (filter.state) {
-      stateCondition = {
-        "state": {
-					"$in": filter.state
-				}
-      }
-    }
-
-    if (filter.event) {
-      eventCondition = {
-        "event" : {
-          "$ne": null || ''
-        }
-      }
-    }
-
-    if (search) {
-			const escapedString =  _.escapeRegExp(search)
-			searchCondition = {
-				$or: [
-					{
-						"krName": {
-							$regex: escapedString,
-							$options: 'i'
-						}
-					},
-					{
-						"cnName": {
-							$regex: escapedString,
-							$options: 'i'
-						}
-					},
-          {
-						"enName": {
-							$regex: escapedString,
-							$options: 'i'
-						}
-					}
-				]
-			}
-		}
-
-    if (stateCondition || searchCondition || eventCondition) {
-      conditions = {
-				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
-					_.isEmpty(stateCondition) ? {} : stateCondition,
-          _.isEmpty(eventCondition) ? {} : eventCondition,
-        ]
-			};
-    }
-
-		return this.find(_.isEmpty(conditions) ? {} : conditions, 'krName cnName enName state status viewsCount thumbnailUri event chains')
-			.sort({ createdAt: -1 })
-			.skip(+skip)
-			.limit(+limit)
-      .populate({
-        path: 'chains',
-        select: ['krName', 'cnName', 'enName', 'state'],
-      })
-      .populate({
-        path: 'category',
-        select: ['code', 'krName', 'cnName', 'enName', 'parent']
-      })
-      .populate({
-        path: 'tags',
-        select: ['code', 'krName', 'cnName', 'enName']
-      })
-			.exec();
-	},
-
-  /**
    * Get business by id
    * @param {ObjectId} id - Business id
    */
@@ -325,13 +252,39 @@ BusinessSchema.statics = {
   },
 
   /**
-   * Filtered business list count
+   * Get single business by params
+   * @param {Object} params - id, enName
    */
-  getTotalCount({skip = 0, limit = 20, filter = {}, search} = {}) {
+  getSingleBusiness(params) {
+    return this.findOne(params)
+    .populate({
+      path: 'category',
+      select: ['code', 'krName', 'cnName', 'enName', 'parent'],
+    })
+    .populate({
+      path: 'tags',
+      select: ['code', 'krName', 'cnName', 'enName'],
+    })
+    .populate({
+      path: 'chains',
+      select: ['krName', 'cnName', 'enName'],
+    })
+    .exec();
+  },
+
+  /**
+	 * List business in descending order of 'createdAt' timestamp.
+	 * @param {number} skip - Number of business to be skipped.
+	 * @param {number} limit - Limit number of business to be returned.
+	 * @returns {Promise<Business[]>}
+	 */
+	getList({skip = 0, limit = 20, filter = {}, search} = {}) {
+
     let conditions,
         searchCondition,
         eventCondition,
-        stateCondition;
+        stateCondition,
+        reportCondition;
 
     if (filter.state) {
       stateCondition = {
@@ -344,8 +297,19 @@ BusinessSchema.statics = {
     if (filter.event) {
       eventCondition = {
         "event" : {
-          "$ne": null || ''
+          "$ne": null
         }
+      }
+    }
+
+    if (filter.reports) {
+      reportCondition = {
+        "reports": {
+					"$exists": true,
+          "$not": {
+            $size: 0
+          },
+				}
       }
     }
 
@@ -375,11 +339,107 @@ BusinessSchema.statics = {
 			}
 		}
 
-    if (stateCondition || searchCondition || eventCondition) {
+    if (stateCondition || searchCondition || eventCondition || reportCondition) {
       conditions = {
 				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
 					_.isEmpty(stateCondition) ? {} : stateCondition,
           _.isEmpty(eventCondition) ? {} : eventCondition,
+          _.isEmpty(reportCondition) ? {} : reportCondition,
+        ]
+			};
+    }
+
+		return this.find(
+      _.isEmpty(conditions) ? {} : conditions,
+      'krName cnName enName  status viewsCount ratingAverage state thumbnailUri event chains reports'
+    )
+			.sort({ createdAt: -1 })
+			.skip(+skip)
+			.limit(+limit)
+      .populate({
+        path: 'chains',
+        select: ['krName', 'cnName', 'enName', 'state'],
+      })
+      .populate({
+        path: 'category',
+        select: ['code', 'krName', 'cnName', 'enName', 'parent']
+      })
+      .populate({
+        path: 'tags',
+        select: ['code', 'krName', 'cnName', 'enName']
+      })
+			.exec();
+	},
+
+  /**
+   * Filtered business list count
+   */
+  getTotalCount({skip = 0, limit = 20, filter = {}, search} = {}) {
+    let conditions,
+        searchCondition,
+        eventCondition,
+        stateCondition,
+        reportCondition;
+
+    if (filter.state) {
+      stateCondition = {
+        "state": {
+					"$in": filter.state
+				}
+      }
+    }
+
+    if (filter.event) {
+      eventCondition = {
+        "event" : {
+          "$ne": null
+        }
+      }
+    }
+
+    if (filter.reports) {
+      reportCondition = {
+        "reports": {
+					"$exists": true,
+          "$not": {
+            $size: 0
+          },
+				}
+      }
+    }
+
+    if (search) {
+			const escapedString =  _.escapeRegExp(search)
+			searchCondition = {
+				$or: [
+					{
+						"krName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					},
+					{
+						"cnName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					},
+          {
+						"enName": {
+							$regex: escapedString,
+							$options: 'i'
+						}
+					}
+				]
+			}
+		}
+
+    if (stateCondition || searchCondition || eventCondition || reportCondition) {
+      conditions = {
+				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
+					_.isEmpty(stateCondition) ? {} : stateCondition,
+          _.isEmpty(eventCondition) ? {} : eventCondition,
+          _.isEmpty(reportCondition) ? {} : reportCondition,
         ]
 			};
     }

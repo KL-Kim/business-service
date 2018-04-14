@@ -15,6 +15,7 @@ const CategorySchema = new Schema({
     "type": String,
     "required": true,
     "unique": true,
+    lowercase: true,
   },
   "cnName": {
     "type": String,
@@ -71,7 +72,7 @@ CategorySchema.methods = {
  */
 CategorySchema.statics = {
   /**
-	 * List Provinces in descending order of 'createdAt' timestamp.
+	 * List category in descending order of 'code'.
    * @param {String} search - Search term
 	 * @returns {Promise<Category[]>}
 	 */
