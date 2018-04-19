@@ -4,8 +4,6 @@
  * @version 0.0.1
  */
 
-import { AccessControl } from 'accesscontrol';
-
 const grants = {
 	guest: {
 		business: {
@@ -106,8 +104,4 @@ const grants = {
 	}
 };
 
-const ac = new AccessControl(grants);
-
-ac.lock();
-
-export default ac;
+export default grants;

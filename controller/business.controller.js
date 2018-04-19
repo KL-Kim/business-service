@@ -112,12 +112,6 @@ class BusinessController extends BaseController {
         return business.save();
       })
       .then(business => {
-        if (!_.isEmpty(business.chains)) {
-          business.chains.map(chain => {
-            console.log(chain);
-          });
-        }
-
         return res.status(204).json();
       })
       .catch(err => {
@@ -149,6 +143,7 @@ class BusinessController extends BaseController {
         const id = req.body._id
         const data = req.body;
         delete data._id;
+        data.updatedAt = Date.now();
 
         return Business.findByIdAndUpdate(id, {...data}).exec();
       })

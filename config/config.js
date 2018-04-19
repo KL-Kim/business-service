@@ -24,6 +24,7 @@ function setConfig() {
 		MONGO_PORTS: Joi.number().default(27017),
 		WEB_SERVICE_HOST: Joi.string(),
 		WEB_SERVICE_PORT: Joi.number().default(80),
+		GRPC_PORT: Joi.number().default(50051),
 		ACCESS_JWT_ALGORITHM: Joi.string().default('RS256'),
 		ACCESS_JWT_ISSUER: Joi.string().allow(''),
 		ACCESS_JWT_AUDIENCE: Joi.string().allow(''),
@@ -49,19 +50,24 @@ function setConfig() {
 			accountVerifyUrl: envVars.WEB_SERVICE_HOST + ':' + envVars.WEB_SERVICE_PORT + '/verify/',
 			changePasswordUrl: envVars.WEB_SERVICE_HOST + ':' + envVars.WEB_SERVICE_PORT + '/change-password/',
 		},
-		// sessionSecret: envVars.SESSION_SECRET,
+		grpcServer: {
+			port: envVars.GRPC_PORT,
+		},
 		accessTokenOptions: {
 			algorithm: envVars.ACCESS_JWT_ALGORITHM,
 			expiresIn: envVars.ACCESS_JWT_EXPIRATION,
 			//issuer: envVars.ACCESS_JWT_ISSUER,
 			//audience: envVars.ACCESS_JWT_AUDIENCE,
 		},
+		// sessionSecret: envVars.SESSION_SECRET,
 	};
 
 	try {
 		config.serverPublicKey = fs.readFileSync(__dirname + '/secret/server.cert.pem', 'utf8');
 		config.serverPrivateKey = fs.readFileSync(__dirname + '/secret/server.key.pem', 'utf8');
     config.accessTokenPublicKey = fs.readFileSync(__dirname + '/secret/access.jwt.cert.pem', 'utf8');
+		config.grpcPublicKey = fs.readFileSync(__dirname + '/secret/out/ikoreatown.net.crt');
+		config.grpcPrivateKey = fs.readFileSync(__dirname + '/secret/out/new.ikoreatown.net.key');
 	} catch(err) {
 		throw err;
 	}

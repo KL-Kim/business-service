@@ -171,9 +171,10 @@ const BusinessSchema = new Schema({
     type: Number,
     default: 0
   },
-  "reviewsList": {
-    type: String
-  },
+  "reviewsList": [{
+    type: Schema.Types.ObjectId,
+    ref: 'Review',
+  }],
   "ratingAverage": {
     type: Number,
     default: 0,
@@ -193,6 +194,14 @@ const BusinessSchema = new Schema({
       type: String
     }
   }],
+  "updatedAt": {
+    type: Date,
+    default: Date.now,
+  },
+  "createdAt": {
+		type: Date,
+		default: Date.now
+	},
 });
 
 /**
@@ -210,6 +219,21 @@ BusinessSchema.index({
  */
 BusinessSchema.virtual('id')
  	.get(function() { return this._id });
+
+/**
+ * Pre-save hooks
+ */
+BusinessSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+
+  return next();
+});
+
+BusinessSchema.pre('update', function(next) {
+  this.updatedAt = Date.now();
+
+  return next();
+});
 
 /**
  * Methods
