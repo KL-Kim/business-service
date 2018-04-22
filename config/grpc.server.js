@@ -10,42 +10,96 @@ import Business from '../models/business.model'
 const PROTO_PATH = __dirname + '/protos/business.proto';
 const businessProto = grpc.load(PROTO_PATH).business;
 
-const getBusiness = (call) => {
-  let business, promises = [], promise;
+const addReview = (call, callback) => {
+  const bid = call.request.bid;
 
-  _.each(call.request.bid, bid => {
-    promise = new Promise((resolve, reject) => {
-      Business.getById(bid).then(business => {
-        call.write({
-          business: {
-            _id: business._id.toString(),
-            krName: business.krName,
-            cnName: business.cnName,
-            enName: business.enName,
-            status: business.status,
-            thumbnailUri: business.thumbnailUri.toJSON(),
-          }
-        });
+  Business.getById(bid)
+    .then(business => {
+      if (_.isEmpty(business)) throw new Error("Not found");
 
-        resolve(business);
-      }).catch(err => {
-        reject(err);
-      });
+      business.reviewsList.push(call.request.rid);
+      business.ratingSum = business.ratingSum + call.request.rating;
+
+      return business.save();
+
+    })
+    .then(business => {
+      const data = {
+        businessId: business._id.toString()
+      };
+
+      callback(null, data);
+    })
+    .catch(err => {
+      callback(err, {});
     });
-
-    promises.push(promise);
-  });
-
-  Promise.all(promises).then(() => {
-    call.end();
-  }).catch(err => {
-    throw err;
-  });
 };
+
+const updateReview = (call, callback) => {
+  const bid = call.request.bid;
+  const rid = call.request.rid;
+  const difference = call.request.difference;
+
+
+  Business.getById(bid)
+    .then(business => {
+      if (_.isEmpty(business)) throw new Error("Not found");
+
+      let index = business.reviewsList.indexOf(rid);
+
+      if (index > -1) {
+        business.ratingSum = business.ratingSum + difference;
+      }
+
+      return business.save();
+    })
+    .then(business => {
+      const data = {
+        businessId: business._id.toString()
+      };
+
+      callback(null, data);
+    })
+    .catch(err => {
+      callback(err, {});
+    });
+}
+
+const deleteReview = (call, callback) => {
+  const bid = call.request.bid;
+  const rid = call.request.rid;
+  const rating = call.request.rating;
+
+  Business.getById(bid)
+    .then(business => {
+      if (_.isEmpty(business)) throw new Error("Not found");
+
+      let reviewsList = business.reviewsList;
+      const index = reviewsList.indexOf(rid);
+      if (index > -1) {
+        reviewsList.splice(index, 1);
+        business.ratingSum = business.ratingSum - rating;
+      }
+
+      return business.save();
+    })
+    .then(business => {
+      const data = {
+        businessId: business._id.toString()
+      };
+
+      callback(null, data);
+    })
+    .catch(err => {
+      callback(err, {});
+    });
+}
 
 const server = new grpc.Server();
 server.addService(businessProto.BusinessService.service, {
-  getBusiness: getBusiness,
+  addReview: addReview,
+  updateReview: updateReview,
+  deleteReview: deleteReview,
 });
 
 server.bind('0.0.0.0:' + config.grpcServer.port, grpc.ServerCredentials.createSsl(null, [{

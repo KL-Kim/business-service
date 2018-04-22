@@ -167,15 +167,11 @@ const BusinessSchema = new Schema({
   "imagesUri": [{
     type: String
   }],
-  "reviewsCount": {
-    type: Number,
-    default: 0
-  },
   "reviewsList": [{
     type: Schema.Types.ObjectId,
     ref: 'Review',
   }],
-  "ratingAverage": {
+  "ratingSum": {
     type: Number,
     default: 0,
   },
@@ -375,7 +371,7 @@ BusinessSchema.statics = {
 
 		return this.find(
       _.isEmpty(conditions) ? {} : conditions,
-      'krName cnName enName  status viewsCount ratingAverage state thumbnailUri event chains reports'
+      'krName cnName enName  status viewsCount ratingSum state thumbnailUri event chains reports'
     )
 			.sort({ createdAt: -1 })
 			.skip(+skip)
