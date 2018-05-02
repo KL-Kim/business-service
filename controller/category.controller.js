@@ -32,7 +32,7 @@ class CategoryController extends BaseController {
   /**
    * Add business category
    * @role - manager, admin, god
-   * @property {Number} req.body.code - Cateogory code
+   * @property {Number} req.body.code - Category code
    * @property {String} req.body.cnName - Category chinese name
    * @property {String} req.body.krName - Category korean name
    * @property {String} req.body.enName - Category English name
@@ -69,8 +69,8 @@ class CategoryController extends BaseController {
   /**
    * Update business category
    * @role - manager, admin, god
-   * @property {ObjectId} req.body._id - Cateogory id
-   * @property {Number} req.body.code - Cateogory code
+   * @property {ObjectId} req.body._id - Category id
+   * @property {Number} req.body.code - Category code
    * @property {String} req.body.cnName - Category chinese name
    * @property {String} req.body.krName - Category korean name
    * @property {String} req.body.enName - Category English name
@@ -110,7 +110,7 @@ class CategoryController extends BaseController {
   /**
    * Delete business category
    * @role - manager, admin, god
-   * @property {ObjectId} req.body._id - Cateogory id
+   * @property {ObjectId} req.body._id - Category id
    */
   deleteBusinessCategory(req, res, next) {
     CategoryController.authenticate(req, res, next)

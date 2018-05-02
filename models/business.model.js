@@ -190,6 +190,12 @@ const BusinessSchema = new Schema({
       type: String
     }
   }],
+  "priority": {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 9,
+  },
   "updatedAt": {
     type: Date,
     default: Date.now,
@@ -277,19 +283,19 @@ BusinessSchema.statics = {
    */
   getSingleBusiness(params) {
     return this.findOne(params)
-    .populate({
-      path: 'category',
-      select: ['code', 'krName', 'cnName', 'enName', 'parent'],
-    })
-    .populate({
-      path: 'tags',
-      select: ['code', 'krName', 'cnName', 'enName'],
-    })
-    .populate({
-      path: 'chains',
-      select: ['krName', 'cnName', 'enName'],
-    })
-    .exec();
+      .populate({
+        path: 'category',
+        select: ['code', 'krName', 'cnName', 'enName', 'parent'],
+      })
+      .populate({
+        path: 'tags',
+        select: ['code', 'krName', 'cnName', 'enName'],
+      })
+      .populate({
+        path: 'chains',
+        select: ['krName', 'cnName', 'enName'],
+      })
+      .exec();
   },
 
   /**
@@ -298,19 +304,37 @@ BusinessSchema.statics = {
 	 * @param {number} limit - Limit number of business to be returned.
 	 * @returns {Promise<Business[]>}
 	 */
-	getList({skip = 0, limit = 20, filter = {}, search} = {}) {
+	getList({ skip = 0, limit = 20, filter = {}, orderBy, search } = {}) {
 
     let conditions,
+        order,
         searchCondition,
         eventCondition,
         stateCondition,
-        reportCondition;
+        reportCondition,
+        listCondition,
+        categoryCondition,
+        areaCondition;
 
     if (filter.state) {
       stateCondition = {
         "state": {
-					"$in": filter.state
-				}
+  				"$in": filter.state
+  			}
+      };
+    }
+
+    if (filter.category) {
+      categoryCondition = {
+        "category": {
+          "$in": filter.category
+        }
+      };
+    }
+
+    if (filter.area) {
+      areaCondition = {
+        "address.area.code": filter.area
       }
     }
 
@@ -331,6 +355,30 @@ BusinessSchema.statics = {
           },
 				}
       }
+    }
+
+    if (filter.list) {
+      const list = _.split(filter.list, ',');
+
+      listCondition = {
+        '_id': {
+          "$in": list
+        }
+      };
+    }
+
+    switch (orderBy) {
+      case 'new':
+        order = {
+          createdAt: -1
+        };
+        break;
+
+      default:
+        order = {
+          priority: -1,
+          viewsCount: -1,
+        };
     }
 
     if (search) {
@@ -359,21 +407,31 @@ BusinessSchema.statics = {
 			}
 		}
 
-    if (stateCondition || searchCondition || eventCondition || reportCondition) {
+    if (stateCondition
+      || searchCondition
+      || eventCondition
+      || reportCondition
+      || listCondition
+      || categoryCondition
+      || areaCondition
+    ) {
       conditions = {
 				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
 					_.isEmpty(stateCondition) ? {} : stateCondition,
           _.isEmpty(eventCondition) ? {} : eventCondition,
           _.isEmpty(reportCondition) ? {} : reportCondition,
+          _.isEmpty(listCondition) ? {} : listCondition,
+          _.isEmpty(categoryCondition) ? {} : categoryCondition,
+          _.isEmpty(areaCondition) ? {} : areaCondition,
         ]
 			};
     }
 
 		return this.find(
       _.isEmpty(conditions) ? {} : conditions,
-      'krName cnName enName  status viewsCount ratingSum state thumbnailUri event chains reports'
+      'krName cnName enName  status viewsCount ratingSum reviewsList state thumbnailUri event chains reports'
     )
-			.sort({ createdAt: -1 })
+			.sort(order)
 			.skip(+skip)
 			.limit(+limit)
       .populate({
@@ -394,18 +452,35 @@ BusinessSchema.statics = {
   /**
    * Filtered business list count
    */
-  getTotalCount({skip = 0, limit = 20, filter = {}, search} = {}) {
+  getTotalCount({filter = {}, search} = {}) {
     let conditions,
         searchCondition,
         eventCondition,
         stateCondition,
-        reportCondition;
+        reportCondition,
+        listCondition,
+        categoryCondition,
+        areaCondition;
 
     if (filter.state) {
       stateCondition = {
         "state": {
-					"$in": filter.state
-				}
+  				"$in": filter.state
+  			}
+      };
+    }
+
+    if (filter.category) {
+      categoryCondition = {
+        "category": {
+          "$in": filter.category
+        }
+      };
+    }
+
+    if (filter.area) {
+      areaCondition = {
+        "address.area.code": filter.area
       }
     }
 
@@ -426,6 +501,16 @@ BusinessSchema.statics = {
           },
 				}
       }
+    }
+
+    if (filter.list) {
+      const list = _.split(filter.list, ',');
+
+      listCondition = {
+        '_id': {
+          "$in": list
+        }
+      };
     }
 
     if (search) {
@@ -454,12 +539,22 @@ BusinessSchema.statics = {
 			}
 		}
 
-    if (stateCondition || searchCondition || eventCondition || reportCondition) {
+    if (stateCondition
+      || searchCondition
+      || eventCondition
+      || reportCondition
+      || listCondition
+      || categoryCondition
+      || areaCondition
+    ) {
       conditions = {
 				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
 					_.isEmpty(stateCondition) ? {} : stateCondition,
           _.isEmpty(eventCondition) ? {} : eventCondition,
           _.isEmpty(reportCondition) ? {} : reportCondition,
+          _.isEmpty(listCondition) ? {} : listCondition,
+          _.isEmpty(categoryCondition) ? {} : categoryCondition,
+          _.isEmpty(areaCondition) ? {} : areaCondition,
         ]
 			};
     }

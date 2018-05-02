@@ -8,13 +8,27 @@ import Joi from 'joi';
 export default {
 
 	/** GET /api/v1/business - Get list of business **/
-	"getBusinessList": {
-		query: {
-			limit: Joi.number(),
+	"getBusinessListByCategory": {
+		"params": {
+			category: Joi.string().trim(),
+		},
+		"query": {
 			skip: Joi.number(),
+			limit: Joi.number(),
+			event: Joi.number(),
+			area: Joi.number().allow(''),
+			search: Joi.string().trim().strip().allow(''),
+		}
+	},
+
+	"adminGetBusinessList": {
+		"query": {
+			skip: Joi.number(),
+			limit: Joi.number(),
+			search: Joi.string().trim().strip().allow(''),
 			event: Joi.number(),
 			state: Joi.string().valid(['draft', 'published', 'trash']),
-			search: Joi.string().trim().strip().allow(''),
+			reports: Joi.number(),
 		}
 	},
 
@@ -181,7 +195,7 @@ export default {
 	},
 
 	/** GET /api/v1/business/category - Get business category list **/
-	"getBusinessCategory": {
+	"getCategoriesList": {
 		"query": {
 			search: Joi.string().trim().strip().allow(''),
 		}

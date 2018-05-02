@@ -19,34 +19,55 @@ class BusinessController extends BaseController {
   /**
    * Get business list
    * @role - *
+   * @property {String} req.params.name - Business category English
    * @property {Number} req.query.skip - Number of business to skip
    * @property {Number} req.query.limit - Number of bussiness page limit
-   * @property {String} req.query.search - Business search term
-   * @property {Number} req.query.state - Business state
    * @property {Number} req.query.event -  Business event
-   * @property {reports} req.query.reports - Busienss reports
+   * @property {String} req.query.list - Array of business ids
+   * @property {Number} req.query.area - Business areas code
+   * @property {String} req.query.orderBy - Business list order
    */
-  getBusinessList(req, res, next) {
-    const { skip, limit, search, state, event, reports } = req.query;
+  getBusinessListByCategory(req, res, next) {
+    if (_.isUndefined(req.params.name)) throw new APIError("Not found", httpStatus.NOT_FOUND);
+
+    const { skip, limit, event, list, area, orderBy } = req.query;
+
     const filter = {
-      state: state,
-      event: event,
-      reports: reports,
+      "area": area,
+      "event": event,
+      "list": list,
+      "state": "published",
+      "category": [],
     };
 
-    Business.getTotalCount({ skip, limit, filter, search }).then(count => {
-      req.count = count;
-      return Business.getList({skip, limit, filter, search})
-    })
-    .then(list => {
-      return res.json({
-        totalCount: req.count,
-        list: list
+    Category.findOne({ "enName": req.params.name })
+      .then(category => {
+        if (!_.isEmpty(category)) {
+          filter.category.push(category._id);
+        }
+
+        return Category.getChildren(category.code);
+      })
+      .then(categories => {
+        if (!_.isEmpty(categories)) {
+          categories.map(category => filter.category.push(category._id));
+        }
+
+        return Business.getTotalCount({ filter });
+      })
+      .then(count => {
+        req.count = count;
+        return Business.getList({ skip, limit, filter, orderBy });
+      })
+      .then(list => {
+        return res.json({
+          totalCount: req.count,
+          list: list
+        });
+      })
+      .catch(err => {
+        return next(err);
       });
-    })
-    .catch(err => {
-      return next(err);
-    });
   }
 
   /**
@@ -54,6 +75,7 @@ class BusinessController extends BaseController {
    * @role - *
    * @property {ObjectId} req.query.id - Business id
    * @property {String} req.query.enName - Business English name
+   * @property {Number} req.query.by - Retrieve business by manger, admin
    */
   getSingleBusiness(req, res, next) {
     if (_.isEmpty(req.query.id) && _.isEmpty(req.query.enName)) {
@@ -75,11 +97,57 @@ class BusinessController extends BaseController {
     Business.getSingleBusiness(params)
       .then(business => {
         if (business) {
-          return res.json(business);
+          if (_.isUndefined(req.query.by)) {
+            business.viewsCount = business.viewsCount + 1;
+            return business.save();
+          } else {
+            return business;
+          }
         } else {
           throw new APIError("Not found", httpStatus.NOT_FOUND);
         }
-      }).catch(err => {
+      }).then(business => {
+        return res.json(business);
+      })
+      .catch(err => {
+        return next(err);
+      });
+  }
+
+  /**
+   * Admin get business list
+   * @property {Number} req.query.skip - Number of business to skip
+   * @property {Number} req.query.limit - Number of bussiness page limit
+   * @property {Number} req.query.event -  Business event
+   * @property {Numnber} req.query.state - Business state
+   * @property {Boolean} req.query.reports - Busienss reports
+   */
+  adminGetBusinessList(req, res, next) {
+    const { skip, limit, search, state, event, reports} = req.query;
+
+    const filter = {
+      "event": event,
+      "state": state,
+      "reports": reports,
+    };
+
+    BusinessController.authenticate(req, res, next)
+      .then(role => {
+        if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+
+        return Business.getTotalCount({ filter });
+      })
+      .then(count => {
+        req.count = count;
+        return Business.getList({ skip, limit, filter, search, orderBy: "new" });
+      })
+      .then(list => {
+        return res.json({
+          totalCount: req.count,
+          list: list
+        });
+      })
+      .catch(err => {
         return next(err);
       });
   }
@@ -302,7 +370,7 @@ class BusinessController extends BaseController {
         if (role === 'manager' || role === 'admin' || role === 'god') {
       		return resolve(role);
       	} else {
-          return reject(new APIError("Unauthorized", httpStatus.UNAUTHORIZED));
+          return reject(new APIError("Forbidden", httpStatus.FORBIDDEN));
         }
  			})(req, res, next);
  		});

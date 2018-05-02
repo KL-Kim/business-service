@@ -30,7 +30,7 @@ const CategorySchema = new Schema({
   "parent": {
     "type": Number,
   },
-  business: [{
+  "business": [{
     type: Schema.Types.ObjectId,
     ref: 'Business'
   }],
@@ -122,6 +122,14 @@ CategorySchema.statics = {
 			.sort({ "code": 1 })
 			.exec();
 	},
+
+  /**
+   * Get category children
+   * @param {Number} code - Category code
+   */
+  getChildren(code) {
+    return this.find({ "parent": code }).exec();
+  },
 
   /**
    * Get category by id
