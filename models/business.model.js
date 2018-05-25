@@ -49,25 +49,37 @@ const BusinessSchema = new Schema({
 		province: {
 			name: {
 				type: String,
+        required: true,
+        default: "北京",
 			},
 			code: {
 				type: Number,
+        required: true,
+        default: 11,
 			}
 		},
 		city: {
 			name: {
 				type: String,
+        required: true,
+        default: "市辖区",
 			},
 			code: {
 				type: Number,
+        required: true,
+        default: 1101,
 			}
 		},
 		area: {
 			name: {
 				type: String,
+        required: true,
+        default: "东城区",
 			},
 			code: {
 				type: Number,
+        required: true,
+        default: 110101
 			}
 		},
 		street: {
@@ -75,12 +87,12 @@ const BusinessSchema = new Schema({
 		},
 	},
   "geo": {
-    lat: {
+    type:{
       type: String,
     },
-    long: {
-      type: String,
-    }
+    coordinates: [{
+      type: Number,
+    }],
   },
   "description": {
     type: String
@@ -99,11 +111,20 @@ const BusinessSchema = new Schema({
     required: true,
     default: 0,
   },
-  "favoredCount": {
+  "weekViewsCount": {
     type: Number,
     required: true,
-    default: 0,
+    default: 0
   },
+  "monthViewsCount": {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  "favoredUser": [{
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   "openningHoursSpec": {
     mon: {
       type: String
@@ -140,7 +161,7 @@ const BusinessSchema = new Schema({
     type: String
   },
   "event": {
-    type: String
+    type: String,
   },
   "menu": [{
     name: {
@@ -175,7 +196,7 @@ const BusinessSchema = new Schema({
     type: Number,
     default: 0,
   },
-  "storiesCount": {
+  "ratingAverage": {
     type: Number,
     default: 0,
   },
@@ -184,11 +205,15 @@ const BusinessSchema = new Schema({
   }],
   "reports": [{
     "checked": {
-      type: Boolean
+      type: Boolean,
+      default: false,
     },
-    content: {
+    "contact": {
       type: String
-    }
+    },
+    "content": {
+      type: String
+    },
   }],
   "priority": {
     type: Number,
@@ -207,13 +232,24 @@ const BusinessSchema = new Schema({
 });
 
 /**
- * Index
+ * Indexes
  */
 BusinessSchema.index({
   cnName: 'text',
   krName: 'text',
   enName: 'text',
-  description: 'text'
+});
+
+BusinessSchema.index({
+  priority: -1,
+  viewsCount: -1,
+  monthViewsCount: -1,
+  weekViewsCount: -1,
+  ratingAverage: -1,
+});
+
+BusinessSchema.index({
+  geo: "2dsphere",
 });
 
 /**
@@ -324,7 +360,7 @@ BusinessSchema.statics = {
       };
     }
 
-    if (filter.category) {
+    if (!_.isEmpty(filter.category)) {
       categoryCondition = {
         "category": {
           "$in": filter.category
@@ -374,10 +410,17 @@ BusinessSchema.statics = {
         };
         break;
 
+      case 'rating':
+        order = {
+          ratingAverage: -1
+        };
+        break;
+
       default:
         order = {
           priority: -1,
           viewsCount: -1,
+          ratingAverage: -1,
         };
     }
 
@@ -429,8 +472,8 @@ BusinessSchema.statics = {
 
 		return this.find(
       _.isEmpty(conditions) ? {} : conditions,
-      'krName cnName enName  status viewsCount ratingSum reviewsList state thumbnailUri event chains reports'
-    )
+        'krName cnName enName status viewsCount monthViewsCount weekViewsCount ratingAverage reviewsList state thumbnailUri event reports priority category address'
+      )
 			.sort(order)
 			.skip(+skip)
 			.limit(+limit)
@@ -470,7 +513,7 @@ BusinessSchema.statics = {
       };
     }
 
-    if (filter.category) {
+    if (!_.isEmpty(filter.category)) {
       categoryCondition = {
         "category": {
           "$in": filter.category

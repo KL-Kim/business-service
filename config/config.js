@@ -20,11 +20,19 @@ function setConfig() {
 			.default('development'),
 		SERVER_PORT: Joi.number()
 			.default(3002),
+
 		MONGO_HOST: Joi.string().default('mongodb://localhost'),
 		MONGO_PORTS: Joi.number().default(27017),
+
 		WEB_SERVICE_HOST: Joi.string(),
 		WEB_SERVICE_PORT: Joi.number().default(80),
-		GRPC_PORT: Joi.number().default(50051),
+
+		BUSINESS_GRPC_HOST: Joi.string().default('localhost'),
+		BUSINESS_GRPC_PORTL: Joi.number().default(50051),
+
+		NOTIFICATION_GRPC_HOST: Joi.string().default('0.0.0.0'),
+		NOTIFICATION_GRPC_PORT: Joi.number().default(50052),
+
 		ACCESS_JWT_ALGORITHM: Joi.string().default('RS256'),
 		ACCESS_JWT_ISSUER: Joi.string().allow(''),
 		ACCESS_JWT_AUDIENCE: Joi.string().allow(''),
@@ -50,8 +58,13 @@ function setConfig() {
 			accountVerifyUrl: envVars.WEB_SERVICE_HOST + ':' + envVars.WEB_SERVICE_PORT + '/verify/',
 			changePasswordUrl: envVars.WEB_SERVICE_HOST + ':' + envVars.WEB_SERVICE_PORT + '/change-password/',
 		},
-		grpcServer: {
-			port: envVars.GRPC_PORT,
+		businessGrpcServer: {
+			host: envVars.BUSINESS_GRPC_HOST,
+			port: envVars.BUSINESS_GRPC_PORT,
+		},
+		notificationGrpcServer: {
+			host: envVars.NOTIFICATION_GRPC_HOST,
+			port: envVars.NOTIFICATION_GRPC_PORT,
 		},
 		accessTokenOptions: {
 			algorithm: envVars.ACCESS_JWT_ALGORITHM,

@@ -2,7 +2,7 @@
 
 import config from './config/config';
 import app from './config/express';
-import grpcServer from './config/grpc.server';
+import grpcServer from './grpc/server';
 
 app.listen(config.port, () => {
   grpcServer.start();

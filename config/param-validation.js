@@ -8,16 +8,14 @@ import Joi from 'joi';
 export default {
 
 	/** GET /api/v1/business - Get list of business **/
-	"getBusinessListByCategory": {
-		"params": {
-			category: Joi.string().trim(),
-		},
+	"getBusiness": {
 		"query": {
 			skip: Joi.number(),
 			limit: Joi.number(),
+			category: Joi.string().trim().allow(''),
+			search: Joi.string().trim().strip().allow(''),
 			event: Joi.number(),
 			area: Joi.number().allow(''),
-			search: Joi.string().trim().strip().allow(''),
 		}
 	},
 
@@ -67,8 +65,8 @@ export default {
 				street: Joi.string().trim().allow(''),
 			},
 			"geo": {
-				lat: Joi.number().allow(''),
-				long: Joi.number().allow(''),
+				type: Joi.string().trim().allow(''),
+				coordinates: Joi.array().items(Joi.number()).allow(null),
 			},
 			"description": Joi.string().trim().allow(''),
 			"priceRange": Joi.string().trim().allow(''),
@@ -102,6 +100,7 @@ export default {
 				hd: Joi.string().uri().allow(''),
 			},
 			"imagesUri": Joi.array().items(Joi.string().uri()).allow(''),
+			"priority": Joi.number(),
 		}
 	},
 
@@ -133,8 +132,8 @@ export default {
 				street: Joi.string().trim().allow(''),
 			},
 			"geo": {
-				lat: Joi.number().allow(''),
-				long: Joi.number().allow(''),
+				type: Joi.string().trim().allow(''),
+				coordinates: Joi.array().items(Joi.number()).allow(null),
 			},
 			"description": Joi.string().trim().allow(''),
 			"priceRange": Joi.string().trim().allow(''),
@@ -174,6 +173,7 @@ export default {
 				hd: Joi.string().uri().allow(''),
 			},
 			"imagesUri": Joi.array().items(Joi.string().uri()).allow(''),
+			"priority": Joi.number(),
 		}
 	},
 
@@ -191,6 +191,17 @@ export default {
 		},
 		"body": {
 			image: Joi.string().trim().required(),
+		},
+	},
+
+	/** POST /api/v1/business/report:id - Report business **/
+	"reportBusiness": {
+		"params": {
+			id: Joi.string().hex().required(),
+		},
+		"body": {
+			contact: Joi.string().trim(),
+			content: Joi.string().trim().required(),
 		},
 	},
 

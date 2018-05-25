@@ -45,11 +45,8 @@ const upload = multer({
   }
 });
 
-/** GET /api/v1/business - Get list of business **/
-router.get('/', validate(paramValidation.adminGetBusinessList), businessController.adminGetBusinessList);
-
 /** GET /api/v1/business - Get list of business by category **/
-router.get('/category/:name', validate(paramValidation.getBusinessListByCategory), businessController.getBusinessListByCategory);
+router.get('/', validate(paramValidation.getBusiness), businessController.getBusiness);
 
 /** GET /api/v1/business - Get single business **/
 router.get('/single', validate(paramValidation.getSingleBusiness), businessController.getSingleBusiness);
@@ -57,7 +54,7 @@ router.get('/single', validate(paramValidation.getSingleBusiness), businessContr
 /** DELETE /api/v1/business/images/:id - Delete business images **/
 router.delete('/images/:id', validate(paramValidation.deleteBusinessImage), businessController.deleteBusinessImage);
 
-/** POST /api/v1/business - Add business **/
+/** POST /api/v1/business - Add new business **/
 router.post('/', validate(paramValidation.addBusiness), businessController.addBusiness);
 
 /** PUT /api/v1/business - Update business **/
@@ -72,5 +69,10 @@ router.post('/images/:id', upload.fields([
   { name: "images", maxCount:9 }
 ]), businessController.addBusinessImages);
 
+/** POST /api/v1/business/report/:id - Report business **/
+router.post('/report/:id', validate(paramValidation.reportBusiness), businessController.reportBusiness);
+
+/** GET /api/v1/business - Get business list by admin **/
+router.get('/admin', validate(paramValidation.adminGetBusinessList), businessController.adminGetBusinessList);
 
 export default router;

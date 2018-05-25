@@ -1,68 +1,114 @@
 import Promise from 'bluebird';
+import grpc from 'grpc';
+import _ from 'lodash';
 import httpStatus from 'http-status';
 import passport from 'passport';
 import fs from 'fs';
 import fsx from 'fs-extra';
-import _ from 'lodash';
+import Cron from 'node-cron';
 
+import grants from '../config/rbac.config';
 import BaseController from './base.controller';
 import APIError from '../helper/api-error';
 import Business from '../models/business.model';
 import Category from '../models/category.model';
 import Tag from '../models/tag.model';
+import config from '../config/config';
+import { notificationProto } from '../config/grpc.client';
 
 class BusinessController extends BaseController {
   constructor() {
     super();
+
+    const weekTask = Cron.schedule('0 0 0 * * Monday', () => {
+      Business.updateMany({ weekViewsCount: 0 }).then(result => {
+        console.log(result);
+      }).catch(err => {
+        throw err;
+      });
+    });
+
+    const monthTask = Cron.schedule('0 0 0 1 * *', () => {
+      Business.updateMany({ monthViewsCount: 0 }).then(result => {
+        console.log(result);
+      }).catch(err => {
+        throw err;
+      });
+    });
+
+    this._notificationGrpcClient = new notificationProto.NotificationService(
+      config.notificationGrpcServer.host + ':' + config.notificationGrpcServer.port,
+      grpc.credentials.createInsecure()
+    );
+
+    this._notificationGrpcClient.waitForReady(Infinity, (err) => {
+      if (err) console.error(err);
+
+      console.log("Notification gRPC Server connected succesfully!");
+    });
   }
 
   /**
    * Get business list
    * @role - *
-   * @property {String} req.params.name - Business category English
+   * @property {String} req.query.category - Business category
    * @property {Number} req.query.skip - Number of business to skip
    * @property {Number} req.query.limit - Number of bussiness page limit
    * @property {Number} req.query.event -  Business event
    * @property {String} req.query.list - Array of business ids
    * @property {Number} req.query.area - Business areas code
    * @property {String} req.query.orderBy - Business list order
+   * @property {String} req.query.search - Search business
    */
-  getBusinessListByCategory(req, res, next) {
-    if (_.isUndefined(req.params.name)) throw new APIError("Not found", httpStatus.NOT_FOUND);
-
-    const { skip, limit, event, list, area, orderBy } = req.query;
+  getBusiness(req, res, next) {
+    const { skip, limit, event, list, area, orderBy, search, category } = req.query;
 
     const filter = {
+      "state": "published",
       "area": area,
       "event": event,
       "list": list,
-      "state": "published",
       "category": [],
+
     };
+    var promise;
 
-    Category.findOne({ "enName": req.params.name })
-      .then(category => {
-        if (!_.isEmpty(category)) {
-          filter.category.push(category._id);
-        }
+    if (category) {
+      promise = new Promise((resolve, reject) => {
+        Category.findOne({ "enName": category })
+          .then(category => {
+            if (!_.isEmpty(category)) {
+              filter.category.push(category._id);
 
-        return Category.getChildren(category.code);
+              return Category.getChildren(category.code);
+            }
+
+            return ;
+        })
+        .then(categories => {
+          if (!_.isEmpty(categories)) {
+            categories.map(category => filter.category.push(category._id));
+          }
+
+          resolve(categories);
+        });
       })
-      .then(categories => {
-        if (!_.isEmpty(categories)) {
-          categories.map(category => filter.category.push(category._id));
-        }
+    } else {
+      promise = '';
+    }
 
-        return Business.getTotalCount({ filter });
+    Promise.resolve(promise)
+      .then(categories => {
+        return Business.getTotalCount({ filter, search });
       })
       .then(count => {
         req.count = count;
-        return Business.getList({ skip, limit, filter, orderBy });
+        return Business.getList({ skip, limit, filter, search, orderBy });
       })
       .then(list => {
         return res.json({
           totalCount: req.count,
-          list: list
+          list: list,
         });
       })
       .catch(err => {
@@ -99,6 +145,8 @@ class BusinessController extends BaseController {
         if (business) {
           if (_.isUndefined(req.query.by)) {
             business.viewsCount = business.viewsCount + 1;
+            business.weekViewsCount = business.weekViewsCount + 1;
+            business.monthViewsCount = business.monthViewsCount + 1;
             return business.save();
           } else {
             return business;
@@ -121,9 +169,10 @@ class BusinessController extends BaseController {
    * @property {Number} req.query.event -  Business event
    * @property {Numnber} req.query.state - Business state
    * @property {Boolean} req.query.reports - Busienss reports
+   * @property {String} req.query.search - Search business
    */
   adminGetBusinessList(req, res, next) {
-    const { skip, limit, search, state, event, reports} = req.query;
+    const { skip, limit, search, state, event, reports } = req.query;
 
     const filter = {
       "event": event,
@@ -135,11 +184,17 @@ class BusinessController extends BaseController {
       .then(role => {
         if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
 
-        return Business.getTotalCount({ filter });
+        return Business.getTotalCount({ filter, search });
       })
       .then(count => {
         req.count = count;
-        return Business.getList({ skip, limit, filter, search, orderBy: "new" });
+        return Business.getList({
+          skip,
+          limit,
+          filter,
+          search,
+          orderBy: "new"
+        });
       })
       .then(list => {
         return res.json({
@@ -153,7 +208,7 @@ class BusinessController extends BaseController {
   }
 
   /**
-   * Add business
+   * Add new business
    * @role - manager, admin, god
    * @property {String} req.body.cnName - Business chinese name
    * @property {String} req.body.krName - Business korean name
@@ -172,9 +227,53 @@ class BusinessController extends BaseController {
       .then(role => {
         if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
 
+        const {
+          state,
+          cnName,
+          krName,
+          enName,
+          chains,
+          category,
+          tags,
+          tel,
+          address,
+          geo,
+          description,
+          priceRange,
+          supportedLanguage,
+          status,
+          openningHoursSpec,
+          rest,
+          payment,
+          delivery,
+          event,
+          menu,
+          priority,
+         } = req.body;
+
         // const data = req.body;
         const business = new Business({
-          ...req.body
+          state,
+          cnName,
+          krName,
+          enName,
+          category,
+          tags,
+          chains,
+          tel,
+          address,
+          geo,
+          description,
+          priceRange,
+          supportedLanguage,
+          status,
+          openningHoursSpec,
+          rest,
+          payment,
+          delivery,
+          event,
+          menu,
+          priority,
         });
 
         return business.save();
@@ -356,6 +455,32 @@ class BusinessController extends BaseController {
       .catch(err => {
         return next(err);
       })
+  }
+
+  /**
+   * Report business
+   * @property {ObejctId} req.params.id - Business id
+   * @property {String} req.body.content - Report content
+   * @property {String} req.body.contact - Reporter contact
+   */
+  reportBusiness(req, res, next) {
+    Business.getById(req.params.id)
+      .then(business => {
+        if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
+
+        business.reports.push({
+          contact: req.body.contact || '',
+          content: req.body.content,
+        });
+
+        business.save();
+      })
+      .then(business => {
+        return res.status(204).send();
+      })
+      .catch(err => {
+        return next(err);
+      });
   }
 
   /**
