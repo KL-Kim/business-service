@@ -1,8 +1,8 @@
 import Express from 'express';
 import validate from 'express-validation';
 
-import CategoryController from '../../controller/category.controller';
 import paramValidation from '../../config/param-validation';
+import CategoryController from '../../controller/category.controller';
 
 const router = Express.Router();
 const categoryController = new CategoryController();

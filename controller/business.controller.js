@@ -488,12 +488,12 @@ class BusinessController extends BaseController {
    */
   static authenticate(req, res, next) {
  		return new Promise((resolve, reject) => {
- 			passport.authenticate('access-token', (err, role, info) => {
+ 			passport.authenticate('access-token', (err, payload, info) => {
  				if (err) return reject(err);
  				if (info) return reject(new APIError(info.message, httpStatus.UNAUTHORIZED));
 
-        if (role === 'manager' || role === 'admin' || role === 'god') {
-      		return resolve(role);
+        if (payload.isVerified && (payload.role === 'manager' || payload.role === 'admin' || payload.role === 'god')) {
+      		return resolve(payload.role);
       	} else {
           return reject(new APIError("Forbidden", httpStatus.FORBIDDEN));
         }

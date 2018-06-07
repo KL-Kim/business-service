@@ -5,7 +5,7 @@
  */
 
 const grants = {
-	guest: {
+	"guest": {
 		business: {
 			"read:any": ["*", "!state", "!reports"],
 		},
@@ -19,7 +19,7 @@ const grants = {
 			"read:any": ["*"],
 		}
 	},
-	regular: {
+	"regular": {
 		business: {
 			"read:any": ["*", "!state", "!reports"],
 		},
@@ -33,7 +33,7 @@ const grants = {
 			"read:any": ["*"],
 		}
 	},
-	manager: {
+	"manager": {
 		business: {
 			"read:any": ["*"],
 			"create:any": ["*"],
@@ -55,7 +55,7 @@ const grants = {
 			"read:any": ["*"],
 		}
 	},
-	admin: {
+	"admin": {
 		business: {
 			"read:any": ["*"],
 			"create:any": ["*"],
@@ -78,7 +78,7 @@ const grants = {
 			"update:any": ["*"],
 		}
 	},
-	god: {
+	"god": {
 		business: {
 			"read:any": ["*"],
 			"create:any": ["*"],

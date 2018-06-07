@@ -143,7 +143,7 @@ class CategoryController extends BaseController {
  				if (err) return reject(err);
  				if (info) return reject(new APIError(info.message, httpStatus.UNAUTHORIZED));
 
-        if (role === 'manager' || role === 'admin' || role === 'god') {
+        if ((role === 'manager' || role === 'admin' || role === 'god') && payload.isVerified) {
       		return resolve(role);
       	} else {
           return reject(new APIError("Unauthorized", httpStatus.UNAUTHORIZED));
