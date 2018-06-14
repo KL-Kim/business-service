@@ -164,10 +164,6 @@ export default {
 				"checked": Joi.boolean(),
 				"content": Joi.string().trim(),
 			})),
-			"reports": Joi.array().items(Joi.object().keys({
-				checked: Joi.boolean(),
-				content: Joi.string().trim(),
-			})),
 			"thumbnailUri": {
 				default: Joi.string().uri().allow(''),
 				hd: Joi.string().uri().allow(''),
@@ -194,12 +190,13 @@ export default {
 		},
 	},
 
-	/** POST /api/v1/business/report:id - Report business **/
+	/** POST /api/v1/business/report/:id - Report business **/
 	"reportBusiness": {
 		"params": {
 			id: Joi.string().hex().required(),
 		},
 		"body": {
+			type: Joi.string().trim(),
 			contact: Joi.string().trim(),
 			content: Joi.string().trim().required(),
 		},

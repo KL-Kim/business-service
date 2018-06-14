@@ -208,10 +208,13 @@ const BusinessSchema = new Schema({
       type: Boolean,
       default: false,
     },
-    "contact": {
+    "type": {
       type: String
     },
     "content": {
+      type: String
+    },
+    "contact": {
       type: String
     },
   }],
