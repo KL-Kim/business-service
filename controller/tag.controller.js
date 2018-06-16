@@ -1,3 +1,13 @@
+/**
+ * Business tag controller
+ *
+ * @export {Class}
+ * @version 0.0.1
+ *
+ * @author KL-Kim (https://github.com/KL-Kim)
+ * @license MIT
+ */
+
 import Promise from 'bluebird';
 import httpStatus from 'http-status';
 import passport from 'passport';
@@ -15,6 +25,7 @@ class TagController extends BaseController {
   /**
    * Get Business Tags list
    * @role - *
+   * @since 0.0.1
    * @property {String} search - Search term
    */
   getTagsList(req, res, next) {
@@ -32,6 +43,7 @@ class TagController extends BaseController {
   /**
    * Add Tags tag
    * @role - manager, admin, god
+   * @since 0.0.1
    * @property {number} req.body.code - Tag code
    * @property {string} req.body.cnName - Tag chinese name
    * @property {string} req.body.krName - Tag korean name
@@ -54,10 +66,7 @@ class TagController extends BaseController {
         return tag.save();
       })
       .then(tag => {
-        return Tag.getTagsList();
-      })
-      .then(list => {
-        return res.json(list);
+        return res.status(204).send();
       })
       .catch(err => {
         return next(err);
@@ -67,6 +76,7 @@ class TagController extends BaseController {
   /**
    * Update business tag
    * @role - manager, admin, god
+   * @since 0.0.1
    * @property {ObjectId} req.body._id - Tag id
    * @property {number} req.body.code - Tag code
    * @property {string} req.body.cnName - Tag chinese name
@@ -81,22 +91,17 @@ class TagController extends BaseController {
         return Tag.getById(req.body._id);
       })
       .then(tag => {
-        if (tag) {
-          tag.code = req.body.code;
-          tag.cnName = req.body.cnName;
-          tag.krName = req.body.krName;
-          tag.enName = req.body.enName;
+        if (_.isEmpty(tag)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-          return tag.save();
-        } else {
-          throw new APIError("Not found", httpStatus.NOT_FOUND);
-        }
+        tag.code = req.body.code;
+        tag.cnName = req.body.cnName;
+        tag.krName = req.body.krName;
+        tag.enName = req.body.enName;
+
+        return tag.save();
       })
       .then(tag => {
-        return Tag.getTagsList();
-      })
-      .then(list => {
-        return res.json(list);
+        return res.status(204).send();
       })
       .catch(err => {
         return next(err);
@@ -106,6 +111,7 @@ class TagController extends BaseController {
   /**
    * Delete business tag
    * @role - manager, admin, god
+   * @since 0.0.1
    * @property {ObjectId} req.body._id - Tag id
    */
   deleteBusinessTag(req, res, next) {
@@ -117,13 +123,10 @@ class TagController extends BaseController {
       })
       .then(tag => {
         if (tag) {
-          return Tag.getTagsList();
+          return res.status(204).send();
         } else {
           throw new APIError("Not found", httpStatus.NOT_FOUND);
         }
-      })
-      .then(list => {
-        return res.json(list);
       })
       .catch(err => {
         return next(err);
@@ -132,15 +135,17 @@ class TagController extends BaseController {
 
   /**
    * Authenticate
+   * @since 0.0.1
+	 * @returns {Promise<Object, APIError>}
    */
   static authenticate(req, res, next) {
  		return new Promise((resolve, reject) => {
- 			passport.authenticate('access-token', (err, role, info) => {
+ 			passport.authenticate('access-token', (err, payload, info) => {
  				if (err) return reject(err);
  				if (info) return reject(new APIError(info.message, httpStatus.UNAUTHORIZED));
 
-        if ((role === 'manager' || role === 'admin' || role === 'god') && payload.isVerified) {
-      		return resolve(role);
+        if (payload.role === 'manager' || payload.role === 'admin' || payload.role === 'god') {
+      		return resolve(payload.role);
       	} else {
           return reject(new APIError("Unauthorized", httpStatus.UNAUTHORIZED));
         }

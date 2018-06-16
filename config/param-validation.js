@@ -8,7 +8,7 @@ import Joi from 'joi';
 export default {
 
 	/** GET /api/v1/business - Get list of business **/
-	"getBusiness": {
+	"getBusinessList": {
 		"query": {
 			skip: Joi.number(),
 			limit: Joi.number(),
@@ -19,29 +19,29 @@ export default {
 		}
 	},
 
-	"adminGetBusinessList": {
+	/** GET /api/v1/business/single/:slug - Get single business **/
+	"getSingleBusiness": {
+		"params": {
+			slug: Joi.string().trim().required(),
+		}
+	},
+
+	// Get business list by admin
+	"getBusinessListByAdmin": {
 		"query": {
 			skip: Joi.number(),
 			limit: Joi.number(),
 			search: Joi.string().trim().strip().allow(''),
 			event: Joi.number(),
-			state: Joi.string().valid(['draft', 'published', 'trash']),
+			status: Joi.string().valid(['DRAFT', 'PUBLISHED', 'TRASH']),
 			reports: Joi.number(),
-		}
-	},
-
-	/** GET /api/v1/business/:id - Get single business **/
-	"getSingleBusiness": {
-		"query": {
-			id: Joi.string().hex().allow('', null),
-			enName: Joi.string().trim().allow('', null),
 		}
 	},
 
 	/** POST /api/v1/business - Add business **/
 	"addBusiness": {
 		"body":{
-			"state": Joi.string().valid(['draft', 'published', 'trash']),
+			"status": Joi.string().valid(['DRAFT', 'PUBLISHED', 'TRASH']),
 			"enName": Joi.string().trim().required(),
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
@@ -70,7 +70,7 @@ export default {
 			},
 			"description": Joi.string().trim().allow(''),
 			"priceRange": Joi.string().trim().allow(''),
-			"status": Joi.string().valid(['normal', 'dissolute']),
+			"status": Joi.string().valid(['NORMAL', 'DISSOLUTE']),
 			"openningHoursSpec": {
 				mon: Joi.string().trim().allow(''),
 				tue: Joi.string().trim().allow(''),
@@ -106,16 +106,18 @@ export default {
 
 	/** PUT /api/v1/business - Update business **/
 	"updateBusiness": {
+		"params": {
+			"id": Joi.string().hex().required(),
+		},
 		"body":{
-			"_id": Joi.string().hex().required(),
-			"state": Joi.string().valid(['draft', 'published', 'trash']),
-			"enName": Joi.string().trim().required(),
-			"cnName": Joi.string().trim().required(),
-			"krName": Joi.string().trim().required(),
+			"status": Joi.string().valid(['DRAFT', 'PUBLISHED', 'TRASH']),
+			"enName": Joi.string().trim(),
+			"cnName": Joi.string().trim(),
+			"krName": Joi.string().trim(),
 			"chains": Joi.array().items(Joi.string().hex()).allow(''),
-			"category": Joi.string().hex().required(),
+			"category": Joi.string().hex(),
 			"tags": Joi.array().items(Joi.string().hex()).allow(''),
-			"tel": Joi.string().trim().required(),
+			"tel": Joi.string().trim(),
 			"address": {
 				province: {
 					name: Joi.string().trim().allow(''),
@@ -137,7 +139,7 @@ export default {
 			},
 			"description": Joi.string().trim().allow(''),
 			"priceRange": Joi.string().trim().allow(''),
-			"status": Joi.string().valid(['normal', 'dissolute']),
+			"status": Joi.string().valid(['NORMAL', 'DISSOLUTE']),
 			"openningHoursSpec": {
 				mon: Joi.string().trim().allow(''),
 				tue: Joi.string().trim().allow(''),
@@ -175,9 +177,9 @@ export default {
 
 	/** DELETE /api/v1/business - Delete business **/
 	"deleteBusiness": {
-		"body": {
-			"_id": Joi.string().hex().required(),
-		}
+		"params": {
+			"id": Joi.string().hex().required(),
+		},
 	},
 
 	/** DELETE /api/v1/business/images/:id - Delete business images **/

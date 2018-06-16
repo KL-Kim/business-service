@@ -1,3 +1,12 @@
+/**
+ * Business Model
+ *
+ * @version 0.0.1
+ *
+ * @author KL-Kim (https://github.com/KL-Kim)
+ * @license MIT
+ */
+
 import Promise from 'bluebird';
 import mongoose, { Schema } from 'mongoose';
 import httpStatus from 'http-status';
@@ -6,16 +15,22 @@ import _ from 'lodash';
 import APIError from '../helper/api-error';
 
 const BusinessSchema = new Schema({
-  "state": {
+  "status": {
     type: String,
     required: true,
-    default: "draft",
-    enum: ['draft', 'published', 'trash']
+    enum: ['DRAFT', 'PUBLISHED', 'TRASH'],
+    default: "DRAFT",
+  },
+  "businessState": {
+    type: String,
+    required: true,
+    enum: ['NORMAL', 'DISSOLUTE'],
+    default: 'NORMAL',
   },
   "cnName": {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   "krName": {
     type: String,
@@ -27,6 +42,7 @@ const BusinessSchema = new Schema({
     required: true,
     unique: true,
     lowercase: true,
+    text: true,
   },
   "chains": [{
     type: Schema.Types.ObjectId,
@@ -79,7 +95,7 @@ const BusinessSchema = new Schema({
 			code: {
 				type: Number,
         required: true,
-        default: 110101
+        default: 110101,
 			}
 		},
 		street: {
@@ -89,10 +105,12 @@ const BusinessSchema = new Schema({
   "geo": {
     type:{
       type: String,
+      default: "Point",
     },
-    coordinates: [{
-      type: Number,
-    }],
+    coordinates: {
+      type: Array,
+      default: [0, 0]
+    },
   },
   "description": {
     type: String
@@ -100,26 +118,23 @@ const BusinessSchema = new Schema({
   "priceRange": {
     type: String
   },
-  "status": {
-    type: String,
-    required: true,
-    enum: ['normal', 'dissolute'],
-    default: 'normal',
-  },
   "viewsCount": {
     type: Number,
     required: true,
     default: 0,
+    index: true,
   },
   "weekViewsCount": {
     type: Number,
     required: true,
-    default: 0
+    default: 0,
+    index: true,
   },
   "monthViewsCount": {
     type: Number,
     required: true,
-    default: 0
+    default: 0,
+    index: true,
   },
   "favoredUser": [{
     type: Schema.Types.ObjectId,
@@ -199,10 +214,8 @@ const BusinessSchema = new Schema({
   "ratingAverage": {
     type: Number,
     default: 0,
+    index: true,
   },
-  "storiesList": [{
-    type: String
-  }],
   "reports": [{
     "checked": {
       type: Boolean,
@@ -223,14 +236,17 @@ const BusinessSchema = new Schema({
     default: 0,
     min: 0,
     max: 9,
+    index: true,
   },
   "updatedAt": {
     type: Date,
     default: Date.now,
+    index: true,
   },
   "createdAt": {
 		type: Date,
-		default: Date.now
+		default: Date.now,
+    index: true
 	},
 });
 
@@ -238,17 +254,9 @@ const BusinessSchema = new Schema({
  * Indexes
  */
 BusinessSchema.index({
-  cnName: 'text',
-  krName: 'text',
-  enName: 'text',
-});
-
-BusinessSchema.index({
   priority: -1,
   viewsCount: -1,
-  monthViewsCount: -1,
-  weekViewsCount: -1,
-  ratingAverage: -1,
+  ratingSum: -1,
 });
 
 BusinessSchema.index({
@@ -295,47 +303,6 @@ BusinessSchema.methods = {
  * Statics
  */
 BusinessSchema.statics = {
-  /**
-   * Get business by id
-   * @param {ObjectId} id - Business id
-   */
-  getById(id) {
-    return this.findById(id)
-      .populate({
-        path: 'category',
-        select: ['code', 'krName', 'cnName', 'enName', 'parent'],
-      })
-      .populate({
-        path: 'tags',
-        select: ['code', 'krName', 'cnName', 'enName'],
-      })
-      .populate({
-        path: 'chains',
-        select: ['krName', 'cnName', 'enName'],
-      })
-      .exec();
-  },
-
-  /**
-   * Get single business by params
-   * @param {Object} params - id, enName
-   */
-  getSingleBusiness(params) {
-    return this.findOne(params)
-      .populate({
-        path: 'category',
-        select: ['code', 'krName', 'cnName', 'enName', 'parent'],
-      })
-      .populate({
-        path: 'tags',
-        select: ['code', 'krName', 'cnName', 'enName'],
-      })
-      .populate({
-        path: 'chains',
-        select: ['krName', 'cnName', 'enName'],
-      })
-      .exec();
-  },
 
   /**
 	 * List business in descending order of 'createdAt' timestamp.
@@ -343,22 +310,22 @@ BusinessSchema.statics = {
 	 * @param {number} limit - Limit number of business to be returned.
 	 * @returns {Promise<Business[]>}
 	 */
-	getList({ skip = 0, limit = 20, filter = {}, orderBy, search } = {}) {
+	getList({ skip = 0, limit = 20, filter = {}, orderBy, search, selectItems } = {}) {
 
     let conditions,
         order,
         searchCondition,
         eventCondition,
-        stateCondition,
+        statusCondition,
         reportCondition,
         listCondition,
         categoryCondition,
         areaCondition;
 
-    if (filter.state) {
-      stateCondition = {
-        "state": {
-  				"$in": filter.state
+    if (filter.status) {
+      statusCondition = {
+        "status": {
+  				"$in": filter.status
   			}
       };
     }
@@ -423,7 +390,7 @@ BusinessSchema.statics = {
         order = {
           priority: -1,
           viewsCount: -1,
-          ratingAverage: -1,
+          ratingSum: -1,
         };
     }
 
@@ -453,17 +420,18 @@ BusinessSchema.statics = {
 			}
 		}
 
-    if (stateCondition
+    if (statusCondition
       || searchCondition
       || eventCondition
       || reportCondition
       || listCondition
       || categoryCondition
       || areaCondition
-    ) {
+    )
+    {
       conditions = {
 				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
-					_.isEmpty(stateCondition) ? {} : stateCondition,
+					_.isEmpty(statusCondition) ? {} : statusCondition,
           _.isEmpty(eventCondition) ? {} : eventCondition,
           _.isEmpty(reportCondition) ? {} : reportCondition,
           _.isEmpty(listCondition) ? {} : listCondition,
@@ -473,10 +441,7 @@ BusinessSchema.statics = {
 			};
     }
 
-		return this.find(
-      _.isEmpty(conditions) ? {} : conditions,
-        'krName cnName enName status viewsCount monthViewsCount weekViewsCount ratingAverage reviewsList state thumbnailUri event reports priority category address'
-      )
+		return this.find(_.isEmpty(conditions) ? {} : conditions, selectItems)
 			.sort(order)
 			.skip(+skip)
 			.limit(+limit)
@@ -502,14 +467,14 @@ BusinessSchema.statics = {
     let conditions,
         searchCondition,
         eventCondition,
-        stateCondition,
+        statusCondition,
         reportCondition,
         listCondition,
         categoryCondition,
         areaCondition;
 
     if (filter.state) {
-      stateCondition = {
+      statusCondition = {
         "state": {
   				"$in": filter.state
   			}
@@ -585,7 +550,7 @@ BusinessSchema.statics = {
 			}
 		}
 
-    if (stateCondition
+    if (statusCondition
       || searchCondition
       || eventCondition
       || reportCondition
@@ -595,7 +560,7 @@ BusinessSchema.statics = {
     ) {
       conditions = {
 				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
-					_.isEmpty(stateCondition) ? {} : stateCondition,
+					_.isEmpty(statusCondition) ? {} : statusCondition,
           _.isEmpty(eventCondition) ? {} : eventCondition,
           _.isEmpty(reportCondition) ? {} : reportCondition,
           _.isEmpty(listCondition) ? {} : listCondition,
@@ -606,6 +571,48 @@ BusinessSchema.statics = {
     }
 
     return this.count(_.isEmpty(conditions) ? {} : conditions).exec();
+  },
+
+  /**
+   * Get business by id
+   * @param {ObjectId} id - Business id
+   */
+  getById(id) {
+    return this.findById(id)
+      .populate({
+        path: 'category',
+        select: ['code', 'krName', 'cnName', 'enName', 'parent'],
+      })
+      .populate({
+        path: 'tags',
+        select: ['code', 'krName', 'cnName', 'enName'],
+      })
+      .populate({
+        path: 'chains',
+        select: ['krName', 'cnName', 'enName'],
+      })
+      .exec();
+  },
+
+  /**
+   * Get single business by English name
+   * @param {Object} params - id, enName
+   */
+  getByName(name) {
+    return this.findOne({ enName: name })
+      .populate({
+        path: 'category',
+        select: ['code', 'krName', 'cnName', 'enName', 'parent'],
+      })
+      .populate({
+        path: 'tags',
+        select: ['code', 'krName', 'cnName', 'enName'],
+      })
+      .populate({
+        path: 'chains',
+        select: ['krName', 'cnName', 'enName'],
+      })
+      .exec();
   },
 };
 

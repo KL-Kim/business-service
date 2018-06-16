@@ -13,7 +13,7 @@ validate.options({
   allowUnknownBody: false,
   allowUnknownHeaders: true,
   allowUnknownQuery: true,
-  allowUnknownParams: true,
+  allowUnknownParams: false,
   allowUnknownCookies: true
 });
 
@@ -46,10 +46,10 @@ const upload = multer({
 });
 
 /** GET /api/v1/business - Get list of business by category **/
-router.get('/', validate(paramValidation.getBusiness), businessController.getBusiness);
+router.get('/', validate(paramValidation.getBusinessList), businessController.getBusinessList);
 
-/** GET /api/v1/business - Get single business **/
-router.get('/single', validate(paramValidation.getSingleBusiness), businessController.getSingleBusiness);
+/** GET /api/v1/business/:slug - Get single business **/
+router.get('/single/:slug', validate(paramValidation.getSingleBusiness), businessController.getSingleBusiness);
 
 /** DELETE /api/v1/business/images/:id - Delete business images **/
 router.delete('/images/:id', validate(paramValidation.deleteBusinessImage), businessController.deleteBusinessImage);
@@ -58,10 +58,10 @@ router.delete('/images/:id', validate(paramValidation.deleteBusinessImage), busi
 router.post('/', validate(paramValidation.addBusiness), businessController.addBusiness);
 
 /** PUT /api/v1/business - Update business **/
-router.put('/', validate(paramValidation.updateBusiness), businessController.updateBusiness);
+router.put('/:id', validate(paramValidation.updateBusiness), businessController.updateBusiness);
 
 /** DELETE /api/v1/business - Delete business **/
-router.delete('/', validate(paramValidation.deleteBusiness), businessController.deleteBusiness);
+router.delete('/:id', validate(paramValidation.deleteBusiness), businessController.deleteBusiness);
 
 /** POST /api/v1/business/images/:id - Add business thumbnail & images **/
 router.post('/images/:id', upload.fields([
@@ -73,6 +73,6 @@ router.post('/images/:id', upload.fields([
 router.post('/report/:id', validate(paramValidation.reportBusiness), businessController.reportBusiness);
 
 /** GET /api/v1/business - Get business list by admin **/
-router.get('/admin', validate(paramValidation.adminGetBusinessList), businessController.adminGetBusinessList);
+router.get('/admin', validate(paramValidation.getBusinessListByAdmin), businessController.getBusinessListByAdmin);
 
 export default router;

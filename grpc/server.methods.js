@@ -1,14 +1,22 @@
 /**
  * Business grpc server methods
+ *
+ * @export {Functions}
+ * @version 0.0.1
+ *
+ * @author KL-Kim (https://github.com/KL-Kim)
+ * @license MIT
  */
+
 import _ from 'lodash';
 
 import Business from '../models/business.model';
 
 /**
  * Add review to business's reviewsList
- * @property {ObjecteId} call.request.bid - business id
- * @property {ObjecteId} call.request.rid - business's review
+ * @property {ObjecteId} call.request.bid - Business Id
+ * @property {ObjecteId} call.request.rid - Business's review Id
+ * @property {Number} call.request.rating - Review rating number
  */
 export const addReview = (call, callback) => {
   const bid = call.request.bid;
@@ -93,8 +101,14 @@ export const deleteReview = (call, callback) => {
 
       if (index > -1) {
         reviewsList.splice(index, 1);
-        business.ratingSum = business.ratingSum - rating;
-        business.ratingAverage = business.ratingSum / business.reviewsList.length;
+
+        if (_.isEmpty(business.reviewsList)) {
+          business.ratingAverage = 0;
+          business.ratingSum = 0;
+        } else {
+          business.ratingSum = business.ratingSum - rating;
+          business.ratingAverage = business.ratingSum / business.reviewsList.length;
+        }
       }
 
       return business.save();

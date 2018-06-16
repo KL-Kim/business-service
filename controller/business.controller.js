@@ -1,3 +1,13 @@
+/**
+ * Business controller
+ *
+ * @export {Class}
+ * @version 0.0.1
+ *
+ * @author KL-Kim (https://github.com/KL-Kim)
+ * @license MIT
+ */
+
 import Promise from 'bluebird';
 import grpc from 'grpc';
 import _ from 'lodash';
@@ -7,12 +17,10 @@ import fs from 'fs';
 import fsx from 'fs-extra';
 import Cron from 'node-cron';
 
-import grants from '../config/rbac.config';
 import BaseController from './base.controller';
 import APIError from '../helper/api-error';
 import Business from '../models/business.model';
 import Category from '../models/category.model';
-import Tag from '../models/tag.model';
 import config from '../config/config';
 import { notificationProto } from '../config/grpc.client';
 
@@ -20,6 +28,7 @@ class BusinessController extends BaseController {
   constructor() {
     super();
 
+    // Reset week views count every monday 00:00
     const weekTask = Cron.schedule('0 0 0 * * Monday', () => {
       Business.updateMany({ weekViewsCount: 0 }).then(result => {
         console.log(result);
@@ -28,6 +37,7 @@ class BusinessController extends BaseController {
       });
     });
 
+    // Reset month views count every month 1th 00:00
     const monthTask = Cron.schedule('0 0 0 1 * *', () => {
       Business.updateMany({ monthViewsCount: 0 }).then(result => {
         console.log(result);
@@ -36,6 +46,7 @@ class BusinessController extends BaseController {
       });
     });
 
+    // Connect to Notification GRPC Serivce
     this._notificationGrpcClient = new notificationProto.NotificationService(
       config.notificationGrpcServer.host + ':' + config.notificationGrpcServer.port,
       grpc.credentials.createInsecure()
@@ -51,6 +62,7 @@ class BusinessController extends BaseController {
   /**
    * Get business list
    * @role - *
+   * @since 0.0.1
    * @property {String} req.query.category - Business category
    * @property {Number} req.query.skip - Number of business to skip
    * @property {Number} req.query.limit - Number of bussiness page limit
@@ -60,17 +72,19 @@ class BusinessController extends BaseController {
    * @property {String} req.query.orderBy - Business list order
    * @property {String} req.query.search - Search business
    */
-  getBusiness(req, res, next) {
+  getBusinessList(req, res, next) {
     const { skip, limit, event, list, area, orderBy, search, category } = req.query;
 
     const filter = {
-      "state": "published",
-      "area": area,
-      "event": event,
-      "list": list,
+      status: "PUBLISHED",
+      area,
+      event,
+      list,
       "category": [],
-
     };
+
+    const selectItems = 'krName cnName enName businessState viewsCount monthViewsCount weekViewsCount ratingAverage thumbnailUri event priority category address';
+
     var promise;
 
     if (category) {
@@ -103,7 +117,7 @@ class BusinessController extends BaseController {
       })
       .then(count => {
         req.count = count;
-        return Business.getList({ skip, limit, filter, search, orderBy });
+        return Business.getList({ skip, limit, filter, search, orderBy, selectItems });
       })
       .then(list => {
         return res.json({
@@ -117,44 +131,23 @@ class BusinessController extends BaseController {
   }
 
   /**
-   * Get single business by idea
+   * Get single business by slug
    * @role - *
-   * @property {ObjectId} req.query.id - Business id
-   * @property {String} req.query.enName - Business English name
-   * @property {Number} req.query.by - Retrieve business by manger, admin
+   * @since 0.0.1
+   * @property {ObjectId} req.params.slug - Business enName
    */
   getSingleBusiness(req, res, next) {
-    if (_.isEmpty(req.query.id) && _.isEmpty(req.query.enName)) {
-      throw new APIError("Not found", httpStatus.NOT_FOUND);
-    }
-
-    let params;
-
-    if (req.query.id) {
-      params = {
-        _id: req.query.id,
-      };
-    } else if (req.query.enName) {
-      params = {
-        enName: req.query.enName,
-      };
-    }
-
-    Business.getSingleBusiness(params)
+    Business.getByName(req.params.slug)
       .then(business => {
-        if (business) {
-          if (_.isUndefined(req.query.by)) {
-            business.viewsCount = business.viewsCount + 1;
-            business.weekViewsCount = business.weekViewsCount + 1;
-            business.monthViewsCount = business.monthViewsCount + 1;
-            return business.save();
-          } else {
-            return business;
-          }
-        } else {
-          throw new APIError("Not found", httpStatus.NOT_FOUND);
-        }
-      }).then(business => {
+        if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
+
+        business.viewsCount = business.viewsCount + 1;
+        business.weekViewsCount = business.weekViewsCount + 1;
+        business.monthViewsCount = business.monthViewsCount + 1;
+
+        return business.save();
+      })
+      .then(business => {
         return res.json(business);
       })
       .catch(err => {
@@ -163,26 +156,59 @@ class BusinessController extends BaseController {
   }
 
   /**
+   * Report business
+   * @role - *
+   * @since 0.0.1
+   * @property {ObejctId} req.params.id - Business id
+   * @property {String} req.body.content - Report content
+   * @property {String} req.body.contact - Reporter contact
+   */
+  reportBusiness(req, res, next) {
+    Business.getById(req.params.id)
+      .then(business => {
+        if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
+
+        const { type, contact, content } = req.body;
+
+        business.reports.push({
+          type,
+          contact,
+          content,
+        });
+
+        return business.save();
+      })
+      .then(business => {
+        return res.status(204).send();
+      })
+      .catch(err => {
+        return next(err);
+      });
+  }
+
+  /**
    * Admin get business list
+   * @role - manager, admin, god
+   * @since 0.0.1
    * @property {Number} req.query.skip - Number of business to skip
    * @property {Number} req.query.limit - Number of bussiness page limit
    * @property {Number} req.query.event -  Business event
-   * @property {Numnber} req.query.state - Business state
+   * @property {Numnber} req.query.status - Business status
    * @property {Boolean} req.query.reports - Busienss reports
    * @property {String} req.query.search - Search business
    */
-  adminGetBusinessList(req, res, next) {
-    const { skip, limit, search, state, event, reports } = req.query;
+  getBusinessListByAdmin(req, res, next) {
+    const { skip, limit, search, status, event, reports, orderBy } = req.query;
 
     const filter = {
-      "event": event,
-      "state": state,
-      "reports": reports,
+      event,
+      status,
+      reports,
     };
 
     BusinessController.authenticate(req, res, next)
-      .then(role => {
-        if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+      .then(payload => {
+        if (_.isEmpty(payload)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
 
         return Business.getTotalCount({ filter, search });
       })
@@ -193,7 +219,7 @@ class BusinessController extends BaseController {
           limit,
           filter,
           search,
-          orderBy: "new"
+          orderBy,
         });
       })
       .then(list => {
@@ -210,6 +236,7 @@ class BusinessController extends BaseController {
   /**
    * Add new business
    * @role - manager, admin, god
+   * @since 0.0.1
    * @property {String} req.body.cnName - Business chinese name
    * @property {String} req.body.krName - Business korean name
    * @property {String} req.body.enName - Business english name
@@ -224,56 +251,11 @@ class BusinessController extends BaseController {
    */
   addBusiness(req, res, next) {
     BusinessController.authenticate(req, res, next)
-      .then(role => {
-        if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+      .then(payload => {
+        if (_.isEmpty(payload)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
 
-        const {
-          state,
-          cnName,
-          krName,
-          enName,
-          chains,
-          category,
-          tags,
-          tel,
-          address,
-          geo,
-          description,
-          priceRange,
-          supportedLanguage,
-          status,
-          openningHoursSpec,
-          rest,
-          payment,
-          delivery,
-          event,
-          menu,
-          priority,
-         } = req.body;
-
-        // const data = req.body;
         const business = new Business({
-          state,
-          cnName,
-          krName,
-          enName,
-          category,
-          tags,
-          chains,
-          tel,
-          address,
-          geo,
-          description,
-          priceRange,
-          supportedLanguage,
-          status,
-          openningHoursSpec,
-          rest,
-          payment,
-          delivery,
-          event,
-          menu,
-          priority,
+          ...req.body
         });
 
         return business.save();
@@ -289,7 +271,8 @@ class BusinessController extends BaseController {
   /**
    * Update business
    * @role - manager, admin, god
-   * @property {ObjectId} req.body._id - Business id
+   * @since 0.0.1
+   * @property {ObjectId} req.query.id - Business id
    * @property {String} req.body.cnName - Business chinese name
    * @property {String} req.body.krName - Business korean name
    * @property {String} req.body.enName - Business english name
@@ -304,15 +287,13 @@ class BusinessController extends BaseController {
    */
   updateBusiness(req, res, next) {
     BusinessController.authenticate(req, res, next)
-      .then(role => {
-        if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+      .then(payload => {
+        if (_.isEmpty(payload)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
 
-        const id = req.body._id
         const data = req.body;
-        delete data._id;
         data.updatedAt = Date.now();
 
-        return Business.findByIdAndUpdate(id, {...data}).exec();
+        return Business.findByIdAndUpdate(req.params.id, {...data}).exec();
       })
       .then(business => {
         if (business) {
@@ -329,18 +310,19 @@ class BusinessController extends BaseController {
   /**
    * Delete business
    * @role god
-   * @property {ObjectId} req.body._id - Business id
+   * @since 0.0.1
+   * @property {ObjectId} req.params.id - Business id
    */
   deleteBusiness(req, res, next) {
     BusinessController.authenticate(req, res, next)
-      .then(role => {
-        if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+      .then(payload => {
+        if (_.isEmpty(payload)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
 
         if (process.env.NODE_ENV !== 'development') {
-          if (role !== 'god') throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+          if (payload.role !== 'god') throw new APIError("Forbidden", httpStatus.FORBIDDEN);
         }
 
-        return Business.findByIdAndRemove(req.body._id);
+        return Business.findByIdAndRemove(req.params.id);
       })
       .then(business => {
         if (business) {
@@ -349,7 +331,6 @@ class BusinessController extends BaseController {
 
             return res.status(204).json();
           });
-
         } else {
           throw new APIError("Not found", httpStatus.NOT_FOUND);
         }
@@ -362,13 +343,14 @@ class BusinessController extends BaseController {
   /**
    * Add business images
    * @role - manager, admin, god
+   * @since 0.0.1
    * @param {ObjectId} req.params.id - Business id
    * @property {Object} req.files - Business images files
    */
   addBusinessImages(req, res, next) {
     BusinessController.authenticate(req, res, next)
-      .then(role => {
-        if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+      .then(payload => {
+        if (_.isEmpty(payload)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
 
         if (_.isEmpty(req.files)) {
           throw new APIError("Bad request", httpStatus.BAD_REQUEST);
@@ -413,29 +395,28 @@ class BusinessController extends BaseController {
   /**
    * Delete business image
    * @role - manager, admin, god
+   * @since 0.0.1
    * @param {ObjectId} req.params.id - Business id
    * @property {String} req.body.image - Business image filename
    */
   deleteBusinessImage(req, res, next) {
     BusinessController.authenticate(req, res, next)
-      .then(role => {
-        if (_.isEmpty(role)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+      .then(payload => {
+        if (_.isEmpty(payload)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
 
         return Business.findById(req.params.id);
       })
       .then(business => {
-        if (business) {
-          const images = business.imagesUri.slice();
-          let index = images.indexOf(req.body.image);
+        if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-          if (index > -1) {
-            images.splice(index, 1);
-            business.imagesUri = images.slice();
+        const images = business.imagesUri.slice();
+        let index = images.indexOf(req.body.image);
 
-            return business.save();
-          } else {
-            throw new APIError("Not found", httpStatus.NOT_FOUND);
-          }
+        if (index > -1) {
+          images.splice(index, 1);
+          business.imagesUri = images.slice();
+
+          return business.save();
         } else {
           throw new APIError("Not found", httpStatus.NOT_FOUND);
         }
@@ -458,33 +439,9 @@ class BusinessController extends BaseController {
   }
 
   /**
-   * Report business
-   * @property {ObejctId} req.params.id - Business id
-   * @property {String} req.body.content - Report content
-   * @property {String} req.body.contact - Reporter contact
-   */
-  reportBusiness(req, res, next) {
-    Business.getById(req.params.id)
-      .then(business => {
-        if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
-
-        business.reports.push({
-          contact: req.body.contact || '',
-          content: req.body.content,
-        });
-
-        business.save();
-      })
-      .then(business => {
-        return res.status(204).send();
-      })
-      .catch(err => {
-        return next(err);
-      });
-  }
-
-  /**
    * Authenticate
+   * @since 0.0.1
+   * @returns {Promise<Object, APIError>}
    */
   static authenticate(req, res, next) {
  		return new Promise((resolve, reject) => {
@@ -492,8 +449,8 @@ class BusinessController extends BaseController {
  				if (err) return reject(err);
  				if (info) return reject(new APIError(info.message, httpStatus.UNAUTHORIZED));
 
-        if (payload.isVerified && (payload.role === 'manager' || payload.role === 'admin' || payload.role === 'god')) {
-      		return resolve(payload.role);
+        if (payload.role === 'manager' || payload.role === 'admin' || payload.role === 'god') {
+      		return resolve(payload);
       	} else {
           return reject(new APIError("Forbidden", httpStatus.FORBIDDEN));
         }

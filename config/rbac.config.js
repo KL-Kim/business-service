@@ -7,7 +7,7 @@
 const grants = {
 	"guest": {
 		business: {
-			"read:any": ["*", "!state", "!reports"],
+			"read:any": ["*", "!state", "!reports", "!priority"],
 		},
 		category: {
 			"read:any": ["*"],
@@ -21,7 +21,7 @@ const grants = {
 	},
 	"regular": {
 		business: {
-			"read:any": ["*", "!state", "!reports"],
+			"read:any": ["*", "!state", "!reports", "!priority"],
 		},
 		category: {
 			"read:any": ["*"],

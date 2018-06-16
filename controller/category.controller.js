@@ -1,3 +1,13 @@
+/**
+ * Business category controller
+ *
+ * @export {Class}
+ * @version 0.0.1
+ *
+ * @author KL-Kim (https://github.com/KL-Kim)
+ * @license MIT
+ */
+
 import Promise from 'bluebird';
 import httpStatus from 'http-status';
 import passport from 'passport';
@@ -8,13 +18,11 @@ import APIError from '../helper/api-error';
 import Category from '../models/category.model';
 
 class CategoryController extends BaseController {
-  constructor() {
-    super();
-  }
 
   /**
    * Get business categories list
    * @role - *
+   * @since 0.0.1
    * @property {String} search - Search term
    */
   getCategoriesList(req, res, next) {
@@ -32,6 +40,7 @@ class CategoryController extends BaseController {
   /**
    * Add business category
    * @role - manager, admin, god
+   * @since 0.0.1
    * @property {Number} req.body.code - Category code
    * @property {String} req.body.cnName - Category chinese name
    * @property {String} req.body.krName - Category korean name
@@ -56,10 +65,7 @@ class CategoryController extends BaseController {
         return category.save();
       })
       .then(category => {
-        return Category.getCategoriesList();
-      })
-      .then(list => {
-        return res.json(list);
+        return res.status(201).send();
       })
       .catch(err => {
         return next(err);
@@ -69,6 +75,7 @@ class CategoryController extends BaseController {
   /**
    * Update business category
    * @role - manager, admin, god
+   * @since 0.0.1
    * @property {ObjectId} req.body._id - Category id
    * @property {Number} req.body.code - Category code
    * @property {String} req.body.cnName - Category chinese name
@@ -84,23 +91,18 @@ class CategoryController extends BaseController {
         return Category.getById(req.body._id);
       })
       .then(category => {
-        if (category) {
-          category.code = req.body.code;
-          category.cnName = req.body.cnName;
-          category.krName = req.body.krName;
-          category.enName = req.body.enName;
-          category.parent = req.body.parent;
+        if (_.isEmpty(category)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-          return category.save();
-        } else {
-          throw new APIError("Not found", httpStatus.NOT_FOUND);
-        }
+        category.code = req.body.code;
+        category.cnName = req.body.cnName;
+        category.krName = req.body.krName;
+        category.enName = req.body.enName;
+        category.parent = req.body.parent;
+
+        return category.save();
       })
       .then(category => {
-        return Category.getCategoriesList();
-      })
-      .then(list => {
-        return res.json(list);
+        return res.status(204).send();
       })
       .catch(err => {
         return next(err);
@@ -110,6 +112,7 @@ class CategoryController extends BaseController {
   /**
    * Delete business category
    * @role - manager, admin, god
+   * @since 0.0.1
    * @property {ObjectId} req.body._id - Category id
    */
   deleteBusinessCategory(req, res, next) {
@@ -121,13 +124,10 @@ class CategoryController extends BaseController {
       })
       .then(category => {
         if (category) {
-          return Category.getCategoriesList();
+          return res.status(204).send();
         } else {
           throw new APIError("Not found", httpStatus.NOT_FOUND);
         }
-      })
-      .then(list => {
-        return res.json(list);
       })
       .catch(err => {
         return next(err);
@@ -136,15 +136,17 @@ class CategoryController extends BaseController {
 
   /**
    * Authenticate
+   * @since 0.0.1
+	 * @returns {Promise<Object, APIError>}
    */
   static authenticate(req, res, next) {
  		return new Promise((resolve, reject) => {
- 			passport.authenticate('access-token', (err, role, info) => {
+ 			passport.authenticate('access-token', (err, payload, info) => {
  				if (err) return reject(err);
  				if (info) return reject(new APIError(info.message, httpStatus.UNAUTHORIZED));
 
-        if ((role === 'manager' || role === 'admin' || role === 'god') && payload.isVerified) {
-      		return resolve(role);
+        if (payload.role === 'manager' || payload.role === 'admin' || payload.role === 'god') {
+      		return resolve(payload.role);
       	} else {
           return reject(new APIError("Unauthorized", httpStatus.UNAUTHORIZED));
         }
