@@ -8,7 +8,7 @@ import Business from '../models/business.model';
     krName: "이따바",
     enName: "yidaba",
     tel: '123-1234-1234',
-    category: '5ad88808331a4fc6ed18298f',
+    category: '5b28b6df8e9e57f92bb8c5ef',
     status: 'PUBLISHED',
   });
 
@@ -23,7 +23,7 @@ import Business from '../models/business.model';
     krName: "희래관",
     enName: "xilaiguan",
     tel: '123-1234-1234',
-    category: '5ad88808331a4fc6ed18298f',
+    category: '5b28b6df8e9e57f92bb8c5f2',
     status: 'PUBLISHED',
   });
 
@@ -38,7 +38,7 @@ import Business from '../models/business.model';
       cnName: i,
       krName: i,
       enName: i,
-      category: '5ad88808331a4fc6ed18298f',
+      category: '5b28b6df8e9e57f92bb8c5ee',
       tel: i,
       status: 'PUBLISHED',
     });

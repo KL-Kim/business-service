@@ -19,12 +19,14 @@ const CategorySchema = new Schema({
     "type": Number,
     "required": true,
     "unique": true,
+    "index": true,
   },
   "enName": {
     "type": String,
     "required": true,
     "unique": true,
-    lowercase: true,
+    "text": true,
+    "lowercase": true,
   },
   "cnName": {
     "type": String,
@@ -39,21 +41,22 @@ const CategorySchema = new Schema({
   "parent": {
     "type": Number,
   },
-  "business": [{
-    type: Schema.Types.ObjectId,
-    ref: 'Business'
-  }],
+  "priority": {
+    "type": Number,
+    "default": 0,
+    "min": 0,
+    "max": 9,
+    "index": true,
+  },
 });
 
 /**
- * Index
+ * Compund Indexes
  */
 CategorySchema.index({
-  "code": 1,
-  "enName": 'text',
-  "cnName": 'text',
-  "krName": 'text',
-});
+  "priority": -1,
+  "code": 1
+})
 
 /**
  * Virtuals
@@ -82,11 +85,28 @@ CategorySchema.methods = {
 CategorySchema.statics = {
   /**
 	 * List category in descending order of 'code'.
-   * @param {String} search - Search term
+   * @property {Number} skip - Number of categories to skip
+   * @property {Number} limit - Number of categories limit
+   * @property {String} search - Search term
+   * @property {String} orderBy - List order
 	 * @returns {Promise<Category[]>}
 	 */
-	getCategoriesList(search) {
-    let searchCondition = {};
+	getCategoriesList({ skip, limit, search, orderBy } = {}) {
+    let searchCondition = {}, sort;
+
+    switch (orderBy) {
+      case "priority":
+        sort = {
+          "priority": -1,
+          "code": 1
+        };
+        break;
+
+      default:
+        sort = {
+          "code": 1
+        };
+    }
 
     const escapedString = _.escapeRegExp(search);
     const num = _.toNumber(search);
@@ -128,7 +148,9 @@ CategorySchema.statics = {
     }
 
 		return this.find(searchCondition)
-			.sort({ "code": 1 })
+      .skip(+skip)
+      .limit(+limit)
+			.sort(sort)
 			.exec();
 	},
 

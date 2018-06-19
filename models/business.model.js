@@ -251,7 +251,7 @@ const BusinessSchema = new Schema({
 });
 
 /**
- * Indexes
+ * Compound Indexes
  */
 BusinessSchema.index({
   priority: -1,
@@ -320,6 +320,7 @@ BusinessSchema.statics = {
         reportCondition,
         listCondition,
         categoryCondition,
+        tagCondition,
         areaCondition;
 
     if (filter.status) {
@@ -334,6 +335,14 @@ BusinessSchema.statics = {
       categoryCondition = {
         "category": {
           "$in": filter.category
+        }
+      };
+    }
+
+    if (!_.isEmpty(filter.tag)) {
+      tagCondition = {
+        "tags": {
+          "$all": [filter.tag]
         }
       };
     }
@@ -427,7 +436,8 @@ BusinessSchema.statics = {
       || listCondition
       || categoryCondition
       || areaCondition
-    )
+      || tagCondition
+     )
     {
       conditions = {
 				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
@@ -436,6 +446,7 @@ BusinessSchema.statics = {
           _.isEmpty(reportCondition) ? {} : reportCondition,
           _.isEmpty(listCondition) ? {} : listCondition,
           _.isEmpty(categoryCondition) ? {} : categoryCondition,
+          _.isEmpty(tagCondition) ? {} : tagCondition,
           _.isEmpty(areaCondition) ? {} : areaCondition,
         ]
 			};
@@ -471,6 +482,7 @@ BusinessSchema.statics = {
         reportCondition,
         listCondition,
         categoryCondition,
+        tagCondition,
         areaCondition;
 
     if (filter.status) {
@@ -485,6 +497,14 @@ BusinessSchema.statics = {
       categoryCondition = {
         "category": {
           "$in": filter.category
+        }
+      };
+    }
+
+    if (!_.isEmpty(filter.tag)) {
+      tagCondition = {
+        "tags": {
+          "$all": [filter.tag]
         }
       };
     }
@@ -556,6 +576,7 @@ BusinessSchema.statics = {
       || reportCondition
       || listCondition
       || categoryCondition
+      || tagCondition
       || areaCondition
     ) {
       conditions = {
@@ -565,6 +586,7 @@ BusinessSchema.statics = {
           _.isEmpty(reportCondition) ? {} : reportCondition,
           _.isEmpty(listCondition) ? {} : listCondition,
           _.isEmpty(categoryCondition) ? {} : categoryCondition,
+          _.isEmpty(tagCondition) ? {} : tagCondition,
           _.isEmpty(areaCondition) ? {} : areaCondition,
         ]
 			};

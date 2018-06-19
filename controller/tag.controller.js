@@ -26,12 +26,15 @@ class TagController extends BaseController {
    * Get Business Tags list
    * @role - *
    * @since 0.0.1
-   * @property {String} search - Search term
+   * @property {Number} req.query.skip - Number of tags to skip
+   * @property {Number} req.query.limit - Number of tags limit
+   * @property {String} req.query.search - Search term
+   * @property {String} req.query.orderBy - List order
    */
   getTagsList(req, res, next) {
-    const { search } = req.query;
+    const { skip, limit, search, orderBy } = req.query;
 
-    Tag.getTagsList(search)
+    Tag.getTagsList({ skip, limit, search, orderBy })
       .then(list => {
         return res.json(list);
       })
@@ -54,13 +57,8 @@ class TagController extends BaseController {
       .then(role => {
         if (_.isEmpty(role)) throw new APIError("Permission denied", httpStatus.UNAUTHORIZED);
 
-        const data = req.body;
-
         const tag = new Tag({
-          code: data.code,
-          enName: data.enName,
-          cnName: data.cnName,
-          krName: data.krName,
+          ...req.body
         });
 
         return tag.save();
@@ -93,12 +91,8 @@ class TagController extends BaseController {
       .then(tag => {
         if (_.isEmpty(tag)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-        tag.code = req.body.code;
-        tag.cnName = req.body.cnName;
-        tag.krName = req.body.krName;
-        tag.enName = req.body.enName;
-
-        return tag.save();
+        delete req.body._id;
+        return tag.update({...req.body});
       })
       .then(tag => {
         return res.status(204).send();

@@ -69,7 +69,7 @@ class BusinessController extends BaseController {
    * @since 0.0.1
    * @property {String} req.query.category - Business category
    * @property {Number} req.query.skip - Number of business to skip
-   * @property {Number} req.query.limit - Number of bussiness page limit
+   * @property {Number} req.query.limit - Number of bussiness limit
    * @property {Number} req.query.event -  Business event
    * @property {String} req.query.list - Array of business ids
    * @property {Number} req.query.area - Business areas code
@@ -77,13 +77,14 @@ class BusinessController extends BaseController {
    * @property {String} req.query.search - Search business
    */
   getBusinessList(req, res, next) {
-    const { skip, limit, event, list, area, orderBy, search, category } = req.query;
+    const { skip, limit, event, list, area, orderBy, search, category, tag } = req.query;
 
     const filter = {
       status: "PUBLISHED",
       area,
       event,
       list,
+      tag,
       "category": [],
     };
 

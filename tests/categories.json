@@ -92,13 +92,13 @@
     "code": "26",
     "krName": "부동산",
     "cnName": "房产中介",
-    "enName": "Property Agencies"
+    "enName": "Property_Agency"
   },
   {
     "code": "27",
     "krName": "여행사",
     "cnName": "旅行社",
-    "enName": "Travel Agencies"
+    "enName": "Travel_Agency"
   },
   {
     "code": "31",
@@ -124,7 +124,7 @@
     "code": "3103",
     "krName": "당구",
     "cnName": "台球",
-    "enName": "Cue sports",
+    "enName": "Cue_sports",
     "parent": "31"
   },
   {
@@ -138,7 +138,7 @@
     "code": "41",
     "krName": "관광명소",
     "cnName": "风景区",
-    "enName": "Scenic Area"
+    "enName": "Scenic_Area"
   },
   {
     "code": "42",
@@ -150,6 +150,6 @@
     "code": "43",
     "krName": "놀이동산",
     "cnName": "游乐园",
-    "enName": "Theme Park"
+    "enName": "Theme_Park"
   }
 ]

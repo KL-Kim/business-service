@@ -24,6 +24,7 @@ const TagSchema = new Schema({
     "type": String,
     "required": true,
     "unique": true,
+    "text": true,
     "lowercase": true,
   },
   "cnName": {
@@ -36,16 +37,21 @@ const TagSchema = new Schema({
     "required": true,
     "unique": true,
   },
+  "priority": {
+    "type": Number,
+    "default": 0,
+    "min": 0,
+    "max": 9,
+    "index": true,
+  },
 });
 
 /**
- * Index
+ * Compund Indexes
  */
 TagSchema.index({
-  "code": 1,
-  "enName": 'text',
-  "cnName": 'text',
-  "krName": 'text',
+  "priority": -1,
+  "code": 1
 });
 
 /**
@@ -76,10 +82,28 @@ TagSchema.statics = {
 
   /**
 	 *  List tags in descending order of 'code'.
+   * @property {Number} skip - Number of categories to skip
+   * @property {Number} limit - Number of categories limit
+   * @property {String} search - Search term
+   * @property {String} orderBy - List order
 	 * @returns {Promise<Tag[]>}
 	 */
-	getTagsList(search) {
-    let searchCondition = {};
+	getTagsList({ skip, limit, search, orderBy } = {}) {
+    let searchCondition = {}, sort;
+
+    switch (orderBy) {
+      case "priority":
+        sort = {
+          "priority": -1,
+          "code": 1
+        };
+        break;
+
+      default:
+        sort =  {
+          "code": 1
+        };
+    }
 
     const escapedString = _.escapeRegExp(search);
     const num = _.toNumber(search);
@@ -114,7 +138,9 @@ TagSchema.statics = {
     }
 
 		return this.find(searchCondition)
-			.sort({ "code": 1 })
+      .skip(+skip)
+      .limit(+limit)
+			.sort(sort)
 			.exec();
 	},
 

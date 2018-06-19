@@ -23,12 +23,15 @@ class CategoryController extends BaseController {
    * Get business categories list
    * @role - *
    * @since 0.0.1
-   * @property {String} search - Search term
+   * @property {Number} req.query.skip - Number of categories to skip
+   * @property {Number} req.query.limit - Number of categories limit
+   * @property {String} req.query.search - Search term
+   * @property {String} req.query.orderBy - List order
    */
   getCategoriesList(req, res, next) {
-    const { search } = req.query;
+    const { skip, limit, search, orderBy } = req.query;
 
-    Category.getCategoriesList(search)
+    Category.getCategoriesList({ skip, limit, search, orderBy })
       .then(list => {
         return res.json(list);
       })
@@ -46,20 +49,15 @@ class CategoryController extends BaseController {
    * @property {String} req.body.krName - Category korean name
    * @property {String} req.body.enName - Category English name
    * @property {Number} req.body.parent - Category parent code
+   * @property {Number} req.body.priority - Category priority
    */
   addBusinessCategory(req, res, next) {
     CategoryController.authenticate(req, res, next)
       .then(role => {
         if (_.isEmpty(role)) throw new APIError("Permission denied", httpStatus.UNAUTHORIZED);
 
-        const data = req.body;
-
         const category = new Category({
-          code: data.code,
-          enName: data.enName,
-          cnName: data.cnName,
-          krName: data.krName,
-          parent: data.parent,
+          ...req.body
         });
 
         return category.save();
@@ -82,6 +80,7 @@ class CategoryController extends BaseController {
    * @property {String} req.body.krName - Category korean name
    * @property {String} req.body.enName - Category English name
    * @property {Number} req.body.parent - Category parent code
+   * @property {Number} req.body.priority - Category priority
    */
   updateBusinessCategory(req, res, next) {
     CategoryController.authenticate(req, res, next)
@@ -93,13 +92,8 @@ class CategoryController extends BaseController {
       .then(category => {
         if (_.isEmpty(category)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-        category.code = req.body.code;
-        category.cnName = req.body.cnName;
-        category.krName = req.body.krName;
-        category.enName = req.body.enName;
-        category.parent = req.body.parent;
-
-        return category.save();
+        delete req.body._id;
+        return category.update({...req.body});
       })
       .then(category => {
         return res.status(204).send();

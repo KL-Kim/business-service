@@ -207,7 +207,10 @@ export default {
 	/** GET /api/v1/business/category - Get business category list **/
 	"getCategoriesList": {
 		"query": {
+			skip: Joi.number(),
+			limit: Joi.number(),
 			search: Joi.string().trim().strip().allow(''),
+			orderBy: Joi.string().valid(['priority', '']),
 		}
 	},
 
@@ -219,6 +222,7 @@ export default {
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
 			"parent": Joi.number().allow(''),
+			"priority": Joi.number().min(0).max(9),
 		}
 	},
 
@@ -231,6 +235,7 @@ export default {
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
 			"parent": Joi.number().allow(''),
+			"priority": Joi.number().min(0).max(9),
 		}
 	},
 
@@ -244,7 +249,10 @@ export default {
 	/** GET /api/v1/business/tag - Get business tags list **/
 	"getBusinessTags": {
 		query: {
+			skip: Joi.number(),
+			limit: Joi.number(),
 			search: Joi.string().trim().strip().allow(''),
+			orderBy: Joi.string().valid(['priority', '']),
 		}
 	},
 
@@ -255,6 +263,7 @@ export default {
 			"enName": Joi.string().trim().required(),
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
+			"priority": Joi.number().min(0).max(9),
 		}
 	},
 
@@ -266,6 +275,7 @@ export default {
 			"enName": Joi.string().trim().required(),
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
+			"priority": Joi.number().min(0).max(9),
 		}
 	},
 
