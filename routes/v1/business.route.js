@@ -51,23 +51,23 @@ router.get('/', validate(paramValidation.getBusinessList), businessController.ge
 /** GET /api/v1/business/:slug - Get single business **/
 router.get('/single/:slug', validate(paramValidation.getSingleBusiness), businessController.getSingleBusiness);
 
-/** DELETE /api/v1/business/images/:id - Delete business images **/
-router.delete('/images/:id', validate(paramValidation.deleteBusinessImage), businessController.deleteBusinessImage);
-
 /** POST /api/v1/business - Add new business **/
 router.post('/', validate(paramValidation.addBusiness), businessController.addBusiness);
 
 /** PUT /api/v1/business - Update business **/
-router.put('/:id', validate(paramValidation.updateBusiness), businessController.updateBusiness);
+router.put('/single/:id', validate(paramValidation.updateBusiness), businessController.updateBusiness);
 
 /** DELETE /api/v1/business - Delete business **/
-router.delete('/:id', validate(paramValidation.deleteBusiness), businessController.deleteBusiness);
+router.delete('/single/:id', validate(paramValidation.deleteBusiness), businessController.deleteBusiness);
 
 /** POST /api/v1/business/images/:id - Add business thumbnail & images **/
 router.post('/images/:id', upload.fields([
   { name: "thumbnail", maxCount: 1 },
   { name: "images", maxCount:9 }
 ]), businessController.addBusinessImages);
+
+/** DELETE /api/v1/business/images/:id - Delete business images **/
+router.delete('/images/:id', validate(paramValidation.deleteBusinessImage), businessController.deleteBusinessImage);
 
 /** POST /api/v1/business/report/:id - Report business **/
 router.post('/report/:id', validate(paramValidation.reportBusiness), businessController.reportBusiness);

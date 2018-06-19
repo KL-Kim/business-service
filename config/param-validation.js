@@ -70,7 +70,7 @@ export default {
 			},
 			"description": Joi.string().trim().allow(''),
 			"priceRange": Joi.string().trim().allow(''),
-			"status": Joi.string().valid(['NORMAL', 'DISSOLUTE']),
+			"businessState": Joi.string().valid(['NORMAL', 'DISSOLUTE']),
 			"openningHoursSpec": {
 				mon: Joi.string().trim().allow(''),
 				tue: Joi.string().trim().allow(''),
@@ -139,7 +139,7 @@ export default {
 			},
 			"description": Joi.string().trim().allow(''),
 			"priceRange": Joi.string().trim().allow(''),
-			"status": Joi.string().valid(['NORMAL', 'DISSOLUTE']),
+			"businessState": Joi.string().valid(['NORMAL', 'DISSOLUTE']),
 			"openningHoursSpec": {
 				mon: Joi.string().trim().allow(''),
 				tue: Joi.string().trim().allow(''),

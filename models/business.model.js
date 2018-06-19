@@ -447,7 +447,7 @@ BusinessSchema.statics = {
 			.limit(+limit)
       .populate({
         path: 'chains',
-        select: ['krName', 'cnName', 'enName', 'state'],
+        select: ['krName', 'cnName', 'enName', 'status'],
       })
       .populate({
         path: 'category',
@@ -473,10 +473,10 @@ BusinessSchema.statics = {
         categoryCondition,
         areaCondition;
 
-    if (filter.state) {
+    if (filter.status) {
       statusCondition = {
-        "state": {
-  				"$in": filter.state
+        "status": {
+  				"$in": filter.status
   			}
       };
     }

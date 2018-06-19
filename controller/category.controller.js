@@ -65,7 +65,7 @@ class CategoryController extends BaseController {
         return category.save();
       })
       .then(category => {
-        return res.status(201).send();
+        return res.status(204).send();
       })
       .catch(err => {
         return next(err);

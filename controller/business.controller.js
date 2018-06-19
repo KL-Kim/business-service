@@ -30,20 +30,24 @@ class BusinessController extends BaseController {
 
     // Reset week views count every monday 00:00
     const weekTask = Cron.schedule('0 0 0 * * Monday', () => {
-      Business.updateMany({ weekViewsCount: 0 }).then(result => {
-        console.log(result);
-      }).catch(err => {
-        throw err;
-      });
+      Business.updateMany({ weekViewsCount: 0 })
+        .then(result => {
+          console.log(result);
+          console.log("Reset week views count successfully")
+        }).catch(err => {
+          throw err;
+        });
     });
 
     // Reset month views count every month 1th 00:00
     const monthTask = Cron.schedule('0 0 0 1 * *', () => {
-      Business.updateMany({ monthViewsCount: 0 }).then(result => {
-        console.log(result);
-      }).catch(err => {
-        throw err;
-      });
+      Business.updateMany({ monthViewsCount: 0 })
+        .then(result => {
+          console.log(result);
+          console.log("Reset month views count successfully")
+        }).catch(err => {
+          throw err;
+        });
     });
 
     // Connect to Notification GRPC Serivce
@@ -55,7 +59,7 @@ class BusinessController extends BaseController {
     this._notificationGrpcClient.waitForReady(Infinity, (err) => {
       if (err) console.error(err);
 
-      console.log("Notification gRPC Server connected succesfully!");
+      console.log("Notification gRPC Server connected successfully!");
     });
   }
 
@@ -359,34 +363,29 @@ class BusinessController extends BaseController {
         return Business.findById(req.params.id);
       })
       .then(business => {
-        if (business) {
-          if (!_.isEmpty(req.files.thumbnail)) {
-            business.thumbnailUri = {
-              hd: 'images/' + req.params.id + '/' + req.files.thumbnail[0].filename,
-              defaut: 'images/' + req.params.id + '/' + req.files.thumbnail[0].filename,
-            };
-          }
+        if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-          if (!_.isEmpty(req.files.images)) {
-            req.files.images.map(image => {
-              const index = business.imagesUri.indexOf('images/' + req.params.id + '/' + image.filename);
-
-              if (index < 0) {
-                business.imagesUri.push('images/' + req.params.id + '/' + image.filename);
-              }
-            })
-          }
-
-          return business.save();
-        } else {
-          throw new APIError("Not found", httpStatus.NOT_FOUND);
+        if (!_.isEmpty(req.files.thumbnail)) {
+          business.thumbnailUri = {
+            hd: 'images/' + req.params.id + '/' + req.files.thumbnail[0].filename,
+            defaut: 'images/' + req.params.id + '/' + req.files.thumbnail[0].filename,
+          };
         }
+
+        if (!_.isEmpty(req.files.images)) {
+          req.files.images.map(image => {
+            const index = business.imagesUri.indexOf('images/' + req.params.id + '/' + image.filename);
+
+            if (index < 0) {
+              business.imagesUri.push('images/' + req.params.id + '/' + image.filename);
+            }
+          })
+        }
+
+        return business.save();
       })
       .then(business => {
-        return res.json({
-          thumbnailUri: business.thumbnailUri,
-          imagesUri: business.imagesUri,
-        });
+        return res.status(204).send();
       }).catch(err => {
         return next(err);
       });
@@ -427,10 +426,7 @@ class BusinessController extends BaseController {
         return fs.unlink('public/images/' + req.params.id + '/' + filename, err => {
           if (err) throw err;
 
-          return res.json({
-            thumbnailUri: business.thumbnailUri,
-            imagesUri: business.imagesUri,
-          });
+          return res.status(204).send();
         });
       })
       .catch(err => {
