@@ -21,6 +21,7 @@ import BaseController from './base.controller';
 import APIError from '../helper/api-error';
 import Business from '../models/business.model';
 import Category from '../models/category.model';
+import Tag from '../models/tag.model';
 import config from '../config/config';
 import { notificationProto } from '../config/grpc.client';
 
@@ -67,7 +68,6 @@ class BusinessController extends BaseController {
    * Get business list
    * @role - *
    * @since 0.0.1
-   * @property {String} req.query.category - Business category
    * @property {Number} req.query.skip - Number of business to skip
    * @property {Number} req.query.limit - Number of bussiness limit
    * @property {Number} req.query.event -  Business event
@@ -75,6 +75,8 @@ class BusinessController extends BaseController {
    * @property {Number} req.query.area - Business areas code
    * @property {String} req.query.orderBy - Business list order
    * @property {String} req.query.search - Search business
+   * @property {String} req.query.category - Business category
+   * @property {String} req.query.tag - Business tag
    */
   getBusinessList(req, res, next) {
     const { skip, limit, event, list, area, orderBy, search, category, tag } = req.query;
@@ -84,16 +86,15 @@ class BusinessController extends BaseController {
       area,
       event,
       list,
-      tag,
       "category": [],
     };
 
     const selectItems = 'krName cnName enName businessState viewsCount monthViewsCount weekViewsCount ratingAverage thumbnailUri event priority category address';
 
-    var promise;
+    var categoryPromise, tagPromise;
 
     if (category) {
-      promise = new Promise((resolve, reject) => {
+      categoryPromise = new Promise((resolve, reject) => {
         Category.findOne({ "enName": category })
           .then(category => {
             if (!_.isEmpty(category)) {
@@ -113,11 +114,24 @@ class BusinessController extends BaseController {
         });
       })
     } else {
-      promise = '';
+      categoryPromise = '';
     }
 
-    Promise.resolve(promise)
-      .then(categories => {
+    if (tag) {
+      tagPromise = new Promise((resolve, reject) => {
+        Tag.findOne({ "enName": tag })
+          .then(tag => {
+            if (tag) {
+              filter.tag = tag._id.toString();
+              return resolve(tag);
+            }
+            else return resolve(null);
+          })
+      });
+    }
+
+    Promise.all([categoryPromise, tagPromise])
+      .then(values => {
         return Business.getTotalCount({ filter, search });
       })
       .then(count => {
