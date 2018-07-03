@@ -16,6 +16,10 @@ export default {
 			search: Joi.string().trim().strip().allow(''),
 			event: Joi.number(),
 			area: Joi.number().allow(''),
+			category: Joi.string().trim(),
+			tag: Joi.string().trim(),
+			ids: Joi.array().items(Joi.string().hex()),
+			orderBy: Joi.string().valid(['recommend', 'rating', 'new', 'useful', '']),
 		}
 	},
 
@@ -35,6 +39,7 @@ export default {
 			event: Joi.number(),
 			status: Joi.string().valid(['DRAFT', 'PUBLISHED', 'TRASH']),
 			reports: Joi.number(),
+			orderBy: Joi.string().valid(['recommend', 'rating', 'new', 'useful', '']),
 		}
 	},
 
@@ -209,7 +214,7 @@ export default {
 		"query": {
 			skip: Joi.number(),
 			limit: Joi.number(),
-			search: Joi.string().trim().strip().allow(''),
+			search: Joi.string().trim().strip(),
 			orderBy: Joi.string().valid(['priority', '']),
 		}
 	},
@@ -251,7 +256,7 @@ export default {
 		query: {
 			skip: Joi.number(),
 			limit: Joi.number(),
-			search: Joi.string().trim().strip().allow(''),
+			search: Joi.string().trim().strip(),
 			orderBy: Joi.string().valid(['priority', '']),
 		}
 	},

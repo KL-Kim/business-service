@@ -71,21 +71,21 @@ class BusinessController extends BaseController {
    * @property {Number} req.query.skip - Number of business to skip
    * @property {Number} req.query.limit - Number of bussiness limit
    * @property {Number} req.query.event -  Business event
-   * @property {String} req.query.list - Array of business ids
+   * @property {String} req.query.ids - Array of business ids
    * @property {Number} req.query.area - Business areas code
    * @property {String} req.query.orderBy - Business list order
    * @property {String} req.query.search - Search business
-   * @property {String} req.query.category - Business category
-   * @property {String} req.query.tag - Business tag
+   * @property {String} req.query.category - Business category English name
+   * @property {String} req.query.tag - Business tag English name
    */
   getBusinessList(req, res, next) {
-    const { skip, limit, event, list, area, orderBy, search, category, tag } = req.query;
+    const { skip, limit, event, ids, area, orderBy, search, category, tag } = req.query;
 
     const filter = {
       status: "PUBLISHED",
       area,
       event,
-      list,
+      ids,
       "category": [],
     };
 
@@ -97,13 +97,13 @@ class BusinessController extends BaseController {
       categoryPromise = new Promise((resolve, reject) => {
         Category.findOne({ "enName": category })
           .then(category => {
-            if (!_.isEmpty(category)) {
-              filter.category.push(category._id);
-
-              return Category.getChildren(category.code);
+            if (_.isEmpty(category)) {
+              return reject(new APIError("Not found", httpStatus.NOT_FOUND));
             }
 
-            return ;
+            filter.category.push(category._id);
+
+            return Category.getChildren(category.code);
         })
         .then(categories => {
           if (!_.isEmpty(categories)) {
@@ -124,8 +124,10 @@ class BusinessController extends BaseController {
             if (tag) {
               filter.tag = tag._id.toString();
               return resolve(tag);
+            } else {
+              filter.tag = '';
+              return reject(new APIError("Not found", httpStatus.NOT_FOUND));
             }
-            else return resolve(null);
           })
       });
     }

@@ -109,20 +109,8 @@ CategorySchema.statics = {
     }
 
     const escapedString = _.escapeRegExp(search);
-    const num = _.toNumber(search);
 
-    if (num) {
-      searchCondition = {
-        $or: [
-          {
-            "code": num
-          },
-          {
-            "parent": num
-          },
-        ]
-      }
-    } else {
+    if (escapedString) {
       searchCondition = {
         $or: [
           {

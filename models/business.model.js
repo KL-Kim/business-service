@@ -372,12 +372,12 @@ BusinessSchema.statics = {
       }
     }
 
-    if (filter.list) {
-      const list = _.split(filter.list, ',');
+    if (filter.ids) {
+      const ids = _.split(filter.ids, ',');
 
       listCondition = {
         '_id': {
-          "$in": list
+          "$in": ids
         }
       };
     }
@@ -440,7 +440,8 @@ BusinessSchema.statics = {
      )
     {
       conditions = {
-				"$and": [_.isEmpty(searchCondition) ? {} : searchCondition,
+				"$and": [
+          _.isEmpty(searchCondition) ? {} : searchCondition,
 					_.isEmpty(statusCondition) ? {} : statusCondition,
           _.isEmpty(eventCondition) ? {} : eventCondition,
           _.isEmpty(reportCondition) ? {} : reportCondition,
@@ -534,18 +535,18 @@ BusinessSchema.statics = {
       }
     }
 
-    if (filter.list) {
-      const list = _.split(filter.list, ',');
+    if (filter.ids) {
+      const ids = _.split(filter.ids, ',');
 
       listCondition = {
         '_id': {
-          "$in": list
+          "$in": ids
         }
       };
     }
 
     if (search) {
-			const escapedString =  _.escapeRegExp(search)
+			const escapedString =  _.escapeRegExp(search);
 			searchCondition = {
 				$or: [
 					{

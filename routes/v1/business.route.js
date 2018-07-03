@@ -12,7 +12,7 @@ const businessController = new BusinessController();
 validate.options({
   allowUnknownBody: false,
   allowUnknownHeaders: true,
-  allowUnknownQuery: true,
+  allowUnknownQuery: false,
   allowUnknownParams: false,
   allowUnknownCookies: true
 });

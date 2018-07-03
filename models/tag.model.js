@@ -106,13 +106,8 @@ TagSchema.statics = {
     }
 
     const escapedString = _.escapeRegExp(search);
-    const num = _.toNumber(search);
-
-    if (num) {
-      searchCondition = {
-        "code": num
-      };
-    } else {
+    
+    if (escapedString) {
       searchCondition = {
         $or: [
           {
