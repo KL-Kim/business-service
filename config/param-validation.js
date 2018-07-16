@@ -18,7 +18,7 @@ export default {
 			area: Joi.number().allow(''),
 			category: Joi.string().trim(),
 			tag: Joi.string().trim(),
-			ids: Joi.array().items(Joi.string().hex()),
+			ids: Joi.string(),
 			orderBy: Joi.string().valid(['recommend', 'rating', 'new', 'useful', '']),
 		}
 	},
@@ -228,6 +228,7 @@ export default {
 			"krName": Joi.string().trim().required(),
 			"parent": Joi.number().allow(''),
 			"priority": Joi.number().min(0).max(9),
+			"thumbnailUrl": Joi.string().trim(),
 		}
 	},
 
@@ -241,6 +242,7 @@ export default {
 			"krName": Joi.string().trim().required(),
 			"parent": Joi.number().allow(''),
 			"priority": Joi.number().min(0).max(9),
+			"thumbnailUrl": Joi.string().trim(),
 		}
 	},
 
@@ -261,7 +263,7 @@ export default {
 		}
 	},
 
-	/** POST /api/v1/business/tag - Add business tag**/
+	/** POST /api/v1/business/tag - Add business tag **/
 	"addBusinessTag": {
 		"body": {
 			"code": Joi.number().required(),
@@ -272,7 +274,7 @@ export default {
 		}
 	},
 
-	/** PUT /api/v1/business/tag - Update business tag**/
+	/** PUT /api/v1/business/tag - Update business tag **/
 	"updateBusinessTag": {
 		"body": {
 			"_id": Joi.string().hex().required(),
@@ -281,6 +283,7 @@ export default {
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
 			"priority": Joi.number().min(0).max(9),
+			
 		}
 	},
 

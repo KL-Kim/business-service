@@ -48,6 +48,9 @@ const CategorySchema = new Schema({
     "max": 9,
     "index": true,
   },
+  "thumbnailUrl": {
+    "type": String,
+  },
 });
 
 /**
@@ -56,7 +59,7 @@ const CategorySchema = new Schema({
 CategorySchema.index({
   "priority": -1,
   "code": 1
-})
+});
 
 /**
  * Virtuals
