@@ -8,9 +8,9 @@ const router = Express.Router();
 const pcaController = new PcaController();
 validate.options({
   allowUnknownBody: false,
+  allowUnknownQuery: false,
+  allowUnknownParams: false,
   allowUnknownHeaders: true,
-  allowUnknownQuery: true,
-  allowUnknownParams: true,
   allowUnknownCookies: true
 });
 
