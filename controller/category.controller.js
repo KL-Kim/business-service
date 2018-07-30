@@ -48,7 +48,6 @@ class CategoryController extends BaseController {
    * @property {String} req.body.cnName - Category chinese name
    * @property {String} req.body.krName - Category korean name
    * @property {String} req.body.enName - Category English name
-   * @property {Number} req.body.parent - Category parent code
    * @property {Number} req.body.priority - Category priority
    */
   addBusinessCategory(req, res, next) {
@@ -79,7 +78,6 @@ class CategoryController extends BaseController {
    * @property {String} req.body.cnName - Category chinese name
    * @property {String} req.body.krName - Category korean name
    * @property {String} req.body.enName - Category English name
-   * @property {Number} req.body.parent - Category parent code
    * @property {Number} req.body.priority - Category priority
    */
   updateBusinessCategory(req, res, next) {

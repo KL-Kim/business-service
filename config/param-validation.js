@@ -226,7 +226,6 @@ export default {
 			"enName": Joi.string().trim().required(),
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
-			"parent": Joi.number().allow(''),
 			"priority": Joi.number().min(0).max(9),
 			"thumbnailUrl": Joi.string().trim(),
 		}
@@ -240,7 +239,6 @@ export default {
 			"enName": Joi.string().trim().required(),
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
-			"parent": Joi.number().allow(''),
 			"priority": Joi.number().min(0).max(9),
 			"thumbnailUrl": Joi.string().trim(),
 		}

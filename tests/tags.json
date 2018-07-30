@@ -1,21 +1,27 @@
-[
+[ 
   {
     "code": 1,
-    "krName": "패밀리",
-    "cnName": "家庭",
-    "enName": "Family"
+    "krName": "한식",
+    "cnName": "韩式料理",
+    "enName": "Korean_Restaurant"
   },
   {
     "code": 2,
-    "krName": "커플",
-    "cnName": "约会",
-    "enName": "Dating"
+    "krName": "중식",
+    "cnName": "中华料理",
+    "enName": "Chinese_Restaurant"
   },
   {
     "code": 3,
-    "krName": "파티",
-    "cnName": "派对",
-    "enName": "Party"
+    "krName": "서양식",
+    "cnName": "西餐",
+    "enName": "West_Restaurant"
+  },
+  {
+    "code": 4,
+    "krName": "동남아",
+    "cnName": "东南亚",
+    "enName": "Southeast_Restaurant"
   },
   {
     "code": 11,
@@ -33,7 +39,7 @@
     "code": 13,
     "krName": "샤브샤브",
     "cnName": "火锅",
-    "enName": "Hot pot"
+    "enName": "Hotpot"
   },
   {
     "code": 14,
@@ -51,6 +57,24 @@
     "code": 21,
     "krName": "한방병원",
     "cnName": "中医",
-    "enName": "Traditional Chinese medicine"
+    "enName": "Traditional_Chinese_Medicine"
+  },
+  {
+    "code": 31,
+    "krName": "패밀리",
+    "cnName": "家庭",
+    "enName": "Family"
+  },
+  {
+    "code": 32,
+    "krName": "커플",
+    "cnName": "约会",
+    "enName": "Dating"
+  },
+  {
+    "code": 33,
+    "krName": "파티",
+    "cnName": "派对",
+    "enName": "Party"
   }
 ]

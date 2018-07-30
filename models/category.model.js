@@ -38,9 +38,6 @@ const CategorySchema = new Schema({
     "required": true,
     "unique": true,
   },
-  "parent": {
-    "type": Number,
-  },
   "priority": {
     "type": Number,
     "default": 0,

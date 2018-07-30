@@ -6,41 +6,6 @@
     "enName": "Restaurant"
   },
   {
-    "code": "1101",
-    "krName": "한식",
-    "cnName": "韩国料理",
-    "enName": "Korean",
-    "parent": "11"
-  },
-  {
-    "code": "1102",
-    "krName": "일식",
-    "cnName": "日本料理",
-    "enName": "Japanese",
-    "parent": "11"
-  },
-  {
-    "code": "1103",
-    "krName": "양식",
-    "cnName": "西餐",
-    "enName": "Western",
-    "parent": "11"
-  },
-  {
-    "code": "1104",
-    "krName": "중식",
-    "cnName": "中华料理",
-    "enName": "Chinese",
-    "parent": "11"
-  },
-  {
-    "code": "1105",
-    "krName": "동남아",
-    "cnName": "东南亚料理",
-    "enName": "SouthEast",
-    "parent": "11"
-  },
-  {
     "code": "12",
     "krName": "호프",
     "cnName": "酒吧",
@@ -102,37 +67,27 @@
   },
   {
     "code": "31",
-    "krName": "스포츠",
-    "cnName": "体育",
-    "enName": "Sports"
-  },
-  {
-    "code": "3101",
     "krName": "골프",
     "cnName": "高尔夫",
-    "enName": "Golf",
-    "parent": "31"
+    "enName": "Golf"
   },
   {
-    "code": "3102",
+    "code": "32",
     "krName": "헬스클럽",
     "cnName": "健身馆",
-    "enName": "Gym",
-    "parent": "31"
+    "enName": "Gym"
   },
   {
-    "code": "3103",
+    "code": "33",
     "krName": "당구",
     "cnName": "台球",
-    "enName": "Cue_sports",
-    "parent": "31"
+    "enName": "Cue_sports"
   },
   {
-    "code": "3104",
+    "code": "34",
     "krName": "스케이팅",
     "cnName": "滑冰场",
-    "enName": "Skating",
-    "parent": "31"
+    "enName": "Skating"
   },
   {
     "code": "41",

@@ -29,5 +29,3 @@ Category.remove({}, function(err) {
 
   });
 });
-
-
