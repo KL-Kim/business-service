@@ -9,10 +9,7 @@
 
 import Promise from 'bluebird';
 import mongoose, { Schema } from 'mongoose';
-import httpStatus from 'http-status';
 import _ from 'lodash';
-
-import APIError from '../helper/api-error';
 
 const CategorySchema = new Schema({
   "code": {
@@ -141,14 +138,6 @@ CategorySchema.statics = {
 			.sort(sort)
 			.exec();
 	},
-
-  /**
-   * Get category children
-   * @param {Number} code - Category code
-   */
-  getChildren(code) {
-    return this.find({ "parent": code }).exec();
-  },
 
   /**
    * Get category by id

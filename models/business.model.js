@@ -9,10 +9,7 @@
 
 import Promise from 'bluebird';
 import mongoose, { Schema } from 'mongoose';
-import httpStatus from 'http-status';
 import _ from 'lodash';
-
-import APIError from '../helper/api-error';
 
 const BusinessSchema = new Schema({
   "status": {
@@ -463,11 +460,11 @@ BusinessSchema.statics = {
       })
       .populate({
         path: 'category',
-        select: ['code', 'krName', 'cnName', 'enName', 'parent']
+        select: ['code', 'krName', 'cnName', 'enName'],
       })
       .populate({
         path: 'tags',
-        select: ['code', 'krName', 'cnName', 'enName']
+        select: ['code', 'krName', 'cnName', 'enName'],
       })
 			.exec();
 	},
@@ -604,7 +601,7 @@ BusinessSchema.statics = {
     return this.findById(id)
       .populate({
         path: 'category',
-        select: ['code', 'krName', 'cnName', 'enName', 'parent'],
+        select: ['code', 'krName', 'cnName', 'enName'],
       })
       .populate({
         path: 'tags',
@@ -625,7 +622,7 @@ BusinessSchema.statics = {
     return this.findOne({ enName: name })
       .populate({
         path: 'category',
-        select: ['code', 'krName', 'cnName', 'enName', 'parent'],
+        select: ['code', 'krName', 'cnName', 'enName'],
       })
       .populate({
         path: 'tags',

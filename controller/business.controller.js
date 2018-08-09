@@ -86,7 +86,8 @@ class BusinessController extends BaseController {
       area,
       event,
       ids,
-      "category": [],
+      "category": null,
+      "tag": null,
     };
 
     const selectItems = 'krName cnName enName businessState viewsCount monthViewsCount weekViewsCount ratingAverage thumbnailUri event priority category address';
@@ -101,39 +102,24 @@ class BusinessController extends BaseController {
               return reject(new APIError("Not found", httpStatus.NOT_FOUND));
             }
 
-            filter.category.push(category._id);
-
-            return Category.getChildren(category.code);
+            filter.category = category._id.toString();
+            return resolve(category);;
         })
-        .then(categories => {
-          if (!_.isEmpty(categories)) {
-            categories.map(category => filter.category.push(category._id));
-          }
-
-          resolve(categories);
-        });
       })
-    } else {
-      categoryPromise = '';
-    }
-
-    if (tag) {
+    } else if (tag) {
       tagPromise = new Promise((resolve, reject) => {
         Tag.findOne({ "enName": tag })
           .then(tag => {
-            if (tag) {
-              filter.tag = tag._id.toString();
-              return resolve(tag);
-            } else {
-              filter.tag = '';
-              return reject(new APIError("Not found", httpStatus.NOT_FOUND));
-            }
+            if (_.isEmpty(tag)) return reject(new APIError("Not found", httpStatus.NOT_FOUND));
+
+            filter.tag = tag._id.toString();
+            return resolve(tag);
           })
       });
     }
 
     Promise.all([categoryPromise, tagPromise])
-      .then(values => {
+      .then(() => {
         return Business.getTotalCount({ filter, search });
       })
       .then(count => {
