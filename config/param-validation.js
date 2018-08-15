@@ -204,8 +204,8 @@ export default {
 		},
 		"body": {
 			type: Joi.string().trim(),
-			contact: Joi.string().trim(),
 			content: Joi.string().trim().required(),
+			contact: Joi.string().trim().allow(''),
 		},
 	},
 
