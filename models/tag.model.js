@@ -9,10 +9,7 @@
 
 import Promise from 'bluebird';
 import mongoose, { Schema } from 'mongoose';
-import httpStatus from 'http-status';
 import _ from 'lodash';
-
-import APIError from '../helper/api-error';
 
 const TagSchema = new Schema({
   "code": {
@@ -43,6 +40,10 @@ const TagSchema = new Schema({
     "min": 0,
     "max": 9,
     "index": true,
+  },
+  "category": {
+    type: Schema.Types.ObjectId,
+    ref: 'Category'
   },
 });
 
@@ -135,7 +136,11 @@ TagSchema.statics = {
 		return this.find(searchCondition)
       .skip(+skip)
       .limit(+limit)
-			.sort(sort)
+      .sort(sort)
+      .populate({
+        path: 'category',
+        select: ['code', 'krName', 'cnName', 'enName'],
+      })
 			.exec();
 	},
 

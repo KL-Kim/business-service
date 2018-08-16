@@ -451,9 +451,9 @@ BusinessSchema.statics = {
     }
 
 		return this.find(_.isEmpty(conditions) ? {} : conditions, selectItems)
-			.sort(order)
 			.skip(+skip)
-			.limit(+limit)
+      .limit(+limit)
+      .sort(order)
       .populate({
         path: 'chains',
         select: ['krName', 'cnName', 'enName', 'status'],

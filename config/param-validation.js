@@ -269,6 +269,7 @@ export default {
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
 			"priority": Joi.number().min(0).max(9),
+			"category": Joi.string().hex().allow(''),
 		}
 	},
 
@@ -281,7 +282,7 @@ export default {
 			"cnName": Joi.string().trim().required(),
 			"krName": Joi.string().trim().required(),
 			"priority": Joi.number().min(0).max(9),
-			
+			"category": Joi.string().hex().allow(''),
 		}
 	},
 
