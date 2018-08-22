@@ -16,6 +16,7 @@ import passport from 'passport';
 import fs from 'fs';
 import fsx from 'fs-extra';
 import Cron from 'node-cron';
+import OSS from 'ali-oss';
 
 import BaseController from './base.controller';
 import APIError from '../helper/api-error';
@@ -90,7 +91,7 @@ class BusinessController extends BaseController {
       "tag": null,
     };
 
-    const selectItems = 'krName cnName enName businessState viewsCount monthViewsCount weekViewsCount ratingAverage thumbnailUri event priority category address';
+    const selectItems = 'krName cnName enName businessState viewsCount monthViewsCount weekViewsCount ratingAverage mainUrl event priority category address';
 
     var categoryPromise, tagPromise;
 
@@ -106,7 +107,9 @@ class BusinessController extends BaseController {
             return resolve(category);;
         })
       })
-    } else if (tag) {
+    }
+    
+    if (tag) {
       tagPromise = new Promise((resolve, reject) => {
         Tag.findOne({ "enName": tag })
           .then(tag => {
@@ -332,15 +335,16 @@ class BusinessController extends BaseController {
         return Business.findByIdAndRemove(req.params.id);
       })
       .then(business => {
-        if (business) {
-          fsx.remove('public/images/' + req.body._id, err => {
-            if (err) throw err;
+        if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-            return res.status(204).json();
-          });
-        } else {
-          throw new APIError("Not found", httpStatus.NOT_FOUND);
-        }
+        // Delete related images
+        // fsx.remove('public/images/' + req.body._id, err => {
+        //   if (err) throw err;
+
+        //   return res.status(204).json();
+        // });
+
+        return res.status(204).send();
       })
       .catch(err => {
         return next(err);
@@ -368,28 +372,92 @@ class BusinessController extends BaseController {
       .then(business => {
         if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-        if (!_.isEmpty(req.files.thumbnail)) {
-          business.thumbnailUri = {
-            hd: 'images/' + req.params.id + '/' + req.files.thumbnail[0].filename,
-            defaut: 'images/' + req.params.id + '/' + req.files.thumbnail[0].filename,
-          };
+        req.business = business
+
+        const client = new OSS({
+          accessKeyId: config.OSSAccessKey.accessKeyId,
+          accessKeySecret: config.OSSAccessKey.accessKeySecret,
+          region: config.OSSRegion,
+          bucket: config.OSSBucket,
+          secure: true,
+        });
+
+        const imagesPromises = [];
+        let promise, rs, pathname;
+
+        if (!_.isEmpty(req.files.main)) {
+          const file = req.files.main[0];
+
+          rs = fs.createReadStream(file.path);
+          
+          rs.on("error", error => {
+            throw error;
+          });
+
+          pathname = 'business/images/' + business._id.toString() + '/main.' + file.filename.split('.').pop();
+          
+          promise = new Promise((resolve, reject) => {
+            return client.putStream(pathname, rs)
+                    .then(response => {
+                      req.business.mainImage = {
+                        name: response.name,
+                        url: response.url,
+                      };
+  
+                      return fsx.remove(file.path);
+                    })
+                    .then(() => {
+                      return resolve("Success");
+                    })
+                    .catch(err => {
+                      return reject(err);
+                    })
+          });
+
+          imagesPromises.push(promise);
         }
 
-        if (!_.isEmpty(req.files.images)) {
-          req.files.images.map(image => {
-            const index = business.imagesUri.indexOf('images/' + req.params.id + '/' + image.filename);
+        if (!_.isEmpty(req.files.gallery)) {
+          req.files.gallery.map(image => {
+            const readableStream = fs.createReadStream(image.path);
 
-            if (index < 0) {
-              business.imagesUri.push('images/' + req.params.id + '/' + image.filename);
-            }
-          })
+            readableStream.on("error", error => {
+              throw error;
+            });
+
+            pathname = 'business/images/' + business._id.toString() + '/' + image.originalname;
+
+            promise = new Promise((resolve, reject) => {
+              return client.putStream(pathname, readableStream)
+                      .then(response => {
+                        req.business.gallery.push({
+                          name: response.name,
+                          url: response.url,
+                        });
+    
+                        return fsx.remove(image.path);
+                      })
+                      .then(() => {
+                        return resolve("Success");
+                      })
+                      .catch(err => {
+                        return reject(err);
+                      });
+            });
+  
+            imagesPromises.push(promise);
+          });
         }
 
-        return business.save();
+        return Promise.all([...imagesPromises]);
       })
-      .then(business => {
+      .then(() => {
+        return req.business.save();
+      })
+      .then(() => {
         return res.status(204).send();
-      }).catch(err => {
+      })
+      .catch(err => {
         return next(err);
       });
   }
@@ -399,7 +467,8 @@ class BusinessController extends BaseController {
    * @role - manager, admin, god
    * @since 0.0.1
    * @param {ObjectId} req.params.id - Business id
-   * @property {String} req.body.image - Business image filename
+   * @property {Boolean} req.body.main - Business main image
+   * @property {String} req.body.imageId - Business gallery image id
    */
   deleteBusinessImage(req, res, next) {
     BusinessController.authenticate(req, res, next)
@@ -411,26 +480,54 @@ class BusinessController extends BaseController {
       .then(business => {
         if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
-        const images = business.imagesUri.slice();
-        let index = images.indexOf(req.body.image);
+        req.business = business;
+        
+        const client = new OSS({
+          accessKeyId: config.OSSAccessKey.accessKeyId,
+          accessKeySecret: config.OSSAccessKey.accessKeySecret,
+          region: config.OSSRegion,
+          bucket: config.OSSBucket,
+          secure: true,
+        });
 
-        if (index > -1) {
-          images.splice(index, 1);
-          business.imagesUri = images.slice();
+        if (req.body.mainImage) {
+          return client.delete(req.business.mainImage.name);
+        } 
+        else if (!_.isEmpty(req.body.imageId)) {
+          let targetName;
+          req.newGallery = [];
 
-          return business.save();
-        } else {
-          throw new APIError("Not found", httpStatus.NOT_FOUND);
+          business.gallery.map(item => {
+            if (item._id.toString() === req.body.imageId) {
+              targetName = item.name;
+            } else {
+              req.newGallery.push(item);
+            }
+          });
+  
+          if (_.isEmpty(targetName)) throw new APIError("Image Not found", httpStatus.NOT_FOUND);
+
+          return client.delete(targetName);
+        } 
+        else {
+          throw new APIError("Bad request", httpStatus.BAD_REQUEST);
         }
       })
-      .then(business => {
-        const filename = req.body.image.split('/').pop();
+      .then(response => {
+        if (response.res.statusCode === 204) {
+          if (req.body.mainImage) {
+            req.business.mainImage = {};
+          } else if (!_.isEmpty(req.body.imageId)) {
+            req.business.gallery = [...req.newGallery];
+          }
 
-        return fs.unlink('public/images/' + req.params.id + '/' + filename, err => {
-          if (err) throw err;
-
-          return res.status(204).send();
-        });
+          return req.business.save();
+        } else {
+          throw new APIError("Aliyun OSS Server Error: " + response.res.message, httpStatus.INTERNAL_SERVER_ERROR);
+        }
+      })
+      .then(() => {
+        return res.status(204).send();
       })
       .catch(err => {
         return next(err);

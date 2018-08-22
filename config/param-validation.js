@@ -193,7 +193,8 @@ export default {
 			id: Joi.string().hex().required(),
 		},
 		"body": {
-			image: Joi.string().trim().required(),
+			mainImage: Joi.boolean(),
+			imageId: Joi.string().hex(),
 		},
 	},
 

@@ -189,16 +189,21 @@ const BusinessSchema = new Schema({
       type: Boolean
     }
   }],
-  "thumbnailUri": {
-    default: {
+  "mainImage": {
+    name: {
       type: String
     },
-    hd: {
+    url: {
       type: String
-    },
+    }
   },
-  "imagesUri": [{
-    type: String
+  "gallery": [{
+    name: {
+      type: String
+    },
+    url: {
+      type: String
+    }
   }],
   "reviewsList": [{
     type: Schema.Types.ObjectId,

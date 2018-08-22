@@ -18,16 +18,9 @@ validate.options({
 });
 
 const storage = multer.diskStorage({
-  "destination": (req, file, cb) => {
-    const dir = './public/images/' + req.params.id;
-    mkdirp(dir, err => cb(err, dir))
-  },
+  "destination": 'tmp/images/',
   "filename": (req, file, cb) => {
-    if (file.fieldname === 'thumbnail') {
-      cb(null, 'thumbnail.hd.' + file.originalname.split('.').pop());
-    } else {
-      cb(null, file.originalname);
-    }
+    cb(null, file.originalname);
   }
 });
 
@@ -51,6 +44,12 @@ router.get('/', validate(paramValidation.getBusinessList), businessController.ge
 /** GET /api/v1/business/:slug - Get single business **/
 router.get('/single/:slug', validate(paramValidation.getSingleBusiness), businessController.getSingleBusiness);
 
+/** POST /api/v1/business/report/:id - Report business **/
+router.post('/report/:id', validate(paramValidation.reportBusiness), businessController.reportBusiness);
+
+/** GET /api/v1/business - Get business list by admin **/
+router.get('/admin', validate(paramValidation.getBusinessListByAdmin), businessController.getBusinessListByAdmin);
+
 /** POST /api/v1/business - Add new business **/
 router.post('/', validate(paramValidation.addBusiness), businessController.addBusiness);
 
@@ -60,19 +59,13 @@ router.put('/single/:id', validate(paramValidation.updateBusiness), businessCont
 /** DELETE /api/v1/business - Delete business **/
 router.delete('/single/:id', validate(paramValidation.deleteBusiness), businessController.deleteBusiness);
 
-/** POST /api/v1/business/images/:id - Add business thumbnail & images **/
+/** POST /api/v1/business/images/:id - Add business images **/
 router.post('/images/:id', upload.fields([
-  { name: "thumbnail", maxCount: 1 },
-  { name: "images", maxCount:9 }
+  { name: "main", maxCount: 1 },
+  { name: "gallery", maxCount: 9 }
 ]), businessController.addBusinessImages);
 
 /** DELETE /api/v1/business/images/:id - Delete business images **/
 router.delete('/images/:id', validate(paramValidation.deleteBusinessImage), businessController.deleteBusinessImage);
-
-/** POST /api/v1/business/report/:id - Report business **/
-router.post('/report/:id', validate(paramValidation.reportBusiness), businessController.reportBusiness);
-
-/** GET /api/v1/business - Get business list by admin **/
-router.get('/admin', validate(paramValidation.getBusinessListByAdmin), businessController.getBusinessListByAdmin);
 
 export default router;

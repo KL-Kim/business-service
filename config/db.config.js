@@ -10,7 +10,9 @@ import config from './config';
 
 mongoose.Promise = Promise;
 const mongoUri = `${config.mongo.host}:${config.mongo.port}/business-service`;
+
 mongoose.connect(mongoUri, {
+	useNewUrlParser: true,
 	promiseLibrary: Promise,
 	keepAlive: 3000000,
 }).catch((error) => {
