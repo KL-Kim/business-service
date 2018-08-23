@@ -98,7 +98,9 @@ export default {
 			})).allow([]),
 			"reports": Joi.array().items(Joi.object().keys({
 				checked: Joi.boolean(),
+				type: Joi.string().trim(),
 				content: Joi.string().trim(),
+				contact: Joi.string().trim().allow(''),
 			})),
 			"thumbnailUri": {
 				default: Joi.string().uri().allow(''),
@@ -168,8 +170,10 @@ export default {
 			})),
 			"reports": Joi.array().items(Joi.object().keys({
 				_id: Joi.string().hex(),
-				"checked": Joi.boolean(),
-				"content": Joi.string().trim(),
+				checked: Joi.boolean(),
+				type: Joi.string().trim(),
+				content: Joi.string().trim(),
+				contact: Joi.string().trim().allow(''),
 			})),
 			"thumbnailUri": {
 				default: Joi.string().uri().allow(''),

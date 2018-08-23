@@ -14,7 +14,6 @@ import _ from 'lodash';
 import httpStatus from 'http-status';
 import passport from 'passport';
 import fs from 'fs';
-import fsx from 'fs-extra';
 import Cron from 'node-cron';
 import OSS from 'ali-oss';
 
@@ -91,7 +90,7 @@ class BusinessController extends BaseController {
       "tag": null,
     };
 
-    const selectItems = 'krName cnName enName businessState viewsCount monthViewsCount weekViewsCount ratingAverage mainUrl event priority category address';
+    const selectItems = 'krName cnName enName businessState viewsCount monthViewsCount weekViewsCount ratingAverage mainImage event priority category address';
 
     var categoryPromise, tagPromise;
 
@@ -326,24 +325,54 @@ class BusinessController extends BaseController {
   deleteBusiness(req, res, next) {
     BusinessController.authenticate(req, res, next)
       .then(payload => {
-        if (_.isEmpty(payload)) throw new APIError("Forbidden", httpStatus.FORBIDDEN);
-
-        if (process.env.NODE_ENV !== 'development') {
-          if (payload.role !== 'god') throw new APIError("Forbidden", httpStatus.FORBIDDEN);
-        }
-
-        return Business.findByIdAndRemove(req.params.id);
+        if (_.isEmpty(payload) || payload.role !== 'god') throw new APIError("Forbidden", httpStatus.FORBIDDEN);
+        
+        return Business.findById(req.params.id);
       })
       .then(business => {
         if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
 
+        req.business = business;
+
         // Delete related images
-        // fsx.remove('public/images/' + req.body._id, err => {
-        //   if (err) throw err;
+        const images = [];
 
-        //   return res.status(204).json();
-        // });
+        if (!_.isEmpty(business.mainImage.name)) {
+          images.push(business.mainImage.name);
+        }
 
+        if (!_.isEmpty(business.gallery)) {
+          business.gallery.map(item => {
+            images.push(item.name);
+          });
+        }
+
+        const OSS_Client = new OSS({
+          accessKeyId: config.OSSAccessKey.accessKeyId,
+          accessKeySecret: config.OSSAccessKey.accessKeySecret,
+          region: config.OSSRegion,
+          bucket: config.OSSBucket,
+          secure: true,
+        });
+
+        if (!_.isEmpty(images)) {
+          return OSS_Client.deleteMulti(images);
+        } else {
+          return {
+            res: {
+              statusCode: 200
+            }
+          };
+        }
+      })
+      .then(response => {
+        if (response.res.statusCode === 200 || response.res.statusCode === 204) {
+          return req.business.remove();
+        } else {
+          throw new APIError("Aliyun OSS Server Error: " + response.res.message, httpStatus.INTERNAL_SERVER_ERROR);
+        }
+      })
+      .then(() => {
         return res.status(204).send();
       })
       .catch(err => {
@@ -404,7 +433,7 @@ class BusinessController extends BaseController {
                         url: response.url,
                       };
   
-                      return fsx.remove(file.path);
+                      return fs.unlink(file.path);
                     })
                     .then(() => {
                       return resolve("Success");
@@ -435,7 +464,7 @@ class BusinessController extends BaseController {
                           url: response.url,
                         });
     
-                        return fsx.remove(image.path);
+                        return fs.unlink(image.path);
                       })
                       .then(() => {
                         return resolve("Success");
