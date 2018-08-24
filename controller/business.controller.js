@@ -302,14 +302,19 @@ class BusinessController extends BaseController {
         const data = req.body;
         data.updatedAt = Date.now();
 
-        return Business.findByIdAndUpdate(req.params.id, {...data}).exec();
+        return Business.findById(req.params.id);
       })
       .then(business => {
-        if (business) {
-          return res.status(204).json();
-        } else {
-          throw new APIError("Not found", httpStatus.NOT_FOUND);
-        }
+        if (_.isEmpty(business)) throw new APIError("Not found", httpStatus.NOT_FOUND);
+
+        return business.update({
+          ...req.body,
+          updatedAt: Date.now(),
+        });
+
+      })
+      .then(() => {
+        return res.status(204).send();
       })
       .catch(err => {
         return next(err);
